@@ -99,6 +99,45 @@ Public Sub ShowErrorMessage(errmsg As String)
         .Show vbModal
     End With
 End Sub
+Public Function getGlBalance1(ACCNO As String, Startdate As Date, Enddate As Date) As Double
+ On Error GoTo Capture
+    Dim rsGls As ADODB.Recordset
+    Dim OBal As Double
+    sql = "set dateformat dmy select gl.Normalbal,op.Cbal, gl.GlAccType from dbo.UDF_GL_OpeningBalance ('" & ACCNO & "','" & Startdate & "') op inner join glsetup gl on op.accno=gl.accno where gl.accno='" & ACCNO & "'"
+    Set Rst = oSaccoMaster.GetRecordset(sql)
+    With Rst
+    
+        'OBal = rst(1)
+         OBal = 0
+        NormalBal = Rst("NormalBal")
+'          If ACCNO = "102A" Then
+'           MsgBox "hI MUTAHI"
+'          End If
+          
+        'transactions between the dates
+        sql = "SET DATEFORMAT DMY Select " _
+        & " (select ISNULL(sum(amount),0) " _
+        & " from gltransactions " _
+        & " where Draccno='" & ACCNO & "' and DATEADD(dd, DATEDIFF(dd, 0, TRANSDATE), 0)>='" & Startdate & "' and DATEADD(dd, DATEDIFF(dd, 0, TRANSDATE), 0)<='" & Enddate & "')DR," _
+        & " (select ISNULL(sum(amount),0) " _
+        & " from gltransactions " _
+        & " where Craccno='" & ACCNO & "' and DATEADD(dd, DATEDIFF(dd, 0, TRANSDATE), 0)>='" & Startdate & "' and DATEADD(dd, DATEDIFF(dd, 0, TRANSDATE), 0)<='" & Enddate & "')CR"
+        
+        Set rsGls = oSaccoMaster.GetRecordset(sql)
+        
+        If NormalBal = "Debit" Then
+            getGlBalance1 = OBal + rsGls("DR") - rsGls("CR")
+        Else
+            getGlBalance1 = OBal + rsGls("CR") - rsGls("DR")
+        End If
+        
+    End With
+    success = True
+    Exit Function
+Capture:
+    success = False
+End Function
+
 Public Function getGlBalance(ACCNO As String, Startdate As Date, Enddate As Date) As Double
 '    On Error GoTo Capture
 '    Dim OBal As Double
@@ -124,11 +163,11 @@ Public Function getGlBalance(ACCNO As String, Startdate As Date, Enddate As Date
     Dim rsGls As ADODB.Recordset
     Dim OBal As Double
     sql = "set dateformat dmy select gl.Normalbal,op.Cbal, gl.GlAccType from dbo.UDF_GL_OpeningBalance ('" & ACCNO & "','" & Startdate & "') op inner join glsetup gl on op.accno=gl.accno where gl.accno='" & ACCNO & "'"
-    Set rst = oSaccoMaster.GetRecordset(sql)
-    With rst
+    Set Rst = oSaccoMaster.GetRecordset(sql)
+    With Rst
     
-        OBal = rst(1)
-        NormalBal = rst("NormalBal")
+        OBal = Rst(1)
+        NormalBal = Rst("NormalBal")
 '          If AccNo = "600184" Then
 '           MsgBox "hI MUTAHI"
 '          End If

@@ -3,7 +3,7 @@ Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "mscomctl.ocx"
 Object = "{86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCT2.OCX"
 Begin VB.Form frmAccounts 
    Caption         =   "Generate Trial Balance"
-   ClientHeight    =   2820
+   ClientHeight    =   3585
    ClientLeft      =   60
    ClientTop       =   345
    ClientWidth     =   7695
@@ -18,16 +18,25 @@ Begin VB.Form frmAccounts
    EndProperty
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
-   ScaleHeight     =   2820
+   ScaleHeight     =   3585
    ScaleWidth      =   7695
    StartUpPosition =   2  'CenterScreen
+   Begin VB.ComboBox Cboactivity 
+      Height          =   330
+      ItemData        =   "frmAccounts.frx":0000
+      Left            =   4680
+      List            =   "frmAccounts.frx":0010
+      TabIndex        =   13
+      Top             =   480
+      Width           =   1935
+   End
    Begin VB.CommandButton Command4 
-      Caption         =   "Command4"
-      Height          =   495
-      Left            =   5640
+      Caption         =   "Process"
+      Height          =   330
+      Left            =   120
       TabIndex        =   12
-      Top             =   240
-      Width           =   1575
+      Top             =   2280
+      Width           =   1335
    End
    Begin MSComctlLib.ProgressBar prgStatus 
       Height          =   255
@@ -86,7 +95,7 @@ Begin VB.Form frmAccounts
          Strikethrough   =   0   'False
       EndProperty
       CustomFormat    =   " dd-MM-yyyy"
-      Format          =   95813635
+      Format          =   108658691
       CurrentDate     =   39705
    End
    Begin MSComCtl2.DTPicker dtpStartDate 
@@ -108,15 +117,16 @@ Begin VB.Form frmAccounts
          Strikethrough   =   0   'False
       EndProperty
       CustomFormat    =   " dd-MM-yyyy"
-      Format          =   95813635
+      Format          =   108658691
       CurrentDate     =   39705
    End
    Begin VB.CommandButton Command1 
       Caption         =   "Process"
       Height          =   375
-      Left            =   195
+      Left            =   2280
       TabIndex        =   0
-      Top             =   2205
+      Top             =   3000
+      Visible         =   0   'False
       Width           =   1245
    End
    Begin VB.Label lblAccount 
@@ -216,7 +226,7 @@ Private Sub cmdPrint_Click()
 End Sub
 
 Private Sub EOY_Processing(EOYDate As Date)
-Dim ACCNO As String, amount As String, transdate As Date, Glacctype As String
+Dim AccNo As String, amount As String, transdate As Date, Glacctype As String
 
 Set rs = Nothing
 Set rs = oSaccoMaster.GetRecordset("set dateformat dmy select * from TBBalance where TransDate='" & EOYDate & "'")
@@ -229,18 +239,18 @@ Set rs = oSaccoMaster.GetRecordset("select AccNo,Glacctype from GlSetup order by
 With rs
     If Not .EOF Then
       While Not .EOF
-      Me.Caption = !ACCNO
+      Me.Caption = !AccNo
         Set rst = oSaccoMaster.GetRecordset("set dateformat dmy select AccNo,Amount,transdate From TBBalance" _
-        & " where AccNO='" & !ACCNO & "' and transdate='" & EOYDate & "' order by AccNO")
+        & " where AccNO='" & !AccNo & "' and transdate='" & EOYDate & "' order by AccNO")
          If Not rst.EOF Then
          
           If !Glacctype = "Income Statement" Then
           amount = 0
-          Set rst1 = oSaccoMaster.GetRecordset("set dateformat dmy update GLSETUP set NewGLOpeningBal=0,NewGLOpeningBalDate='" & EOYDate & "',CurrentBal=" & amount & " where AccNo='" & !ACCNO & "'")
+          Set rst1 = oSaccoMaster.GetRecordset("set dateformat dmy update GLSETUP set NewGLOpeningBal=0,NewGLOpeningBalDate='" & EOYDate & "',CurrentBal=" & amount & " where AccNo='" & !AccNo & "'")
 
           Else
           amount = rst!amount
-          Set rst1 = oSaccoMaster.GetRecordset("set dateformat dmy update GLSETUP set NewGLOpeningBal=" & amount & ",NewGLOpeningBalDate='" & EOYDate & "',CurrentBal=" & amount & " where AccNo='" & !ACCNO & "'")
+          Set rst1 = oSaccoMaster.GetRecordset("set dateformat dmy update GLSETUP set NewGLOpeningBal=" & amount & ",NewGLOpeningBalDate='" & EOYDate & "',CurrentBal=" & amount & " where AccNo='" & !AccNo & "'")
 
          End If
 
@@ -254,11 +264,211 @@ End Sub
 
 Private Sub Command1_Click()
     On Error Resume Next
-    Dim ACCNO As String
+    Dim AccNo As String
     Dim suspense As Double
     Dim Debits As Double, Credits As Double
     Dim ACCBAL As Double
-    Dim transtype As String, DocumentNo As String, accType As String, AccGroup As String, AccName As String
+    Dim transtype As String, DocumentNo As String, accType As String, AccGroup As String, AccName As String, OpeningBal As Double, TotalDr As Double, TotalCr As Double
+    
+    If Not oSaccoMaster.Execute("Truncate table TBBALANCE") Then
+        GoTo SysError
+    End If
+    sql = "SELECT Accno,NormalBal,glaccType,glaccname,glaccGroup FROM GLSETUP ORDER BY ACCNO"
+    Set rst = oSaccoMaster.GetRecordset(sql)
+    With rst
+        If Not .EOF Then
+            prgStatus.Visible = True
+            lblStatus.Visible = True
+            lblAccount.Visible = True
+            prgStatus.Max = 100
+            'prgStatus.Min = 0
+            I = 0
+            While Not .EOF
+                DoEvents
+                I = I + 1
+                lblStatus.Caption = CStr((I / .RecordCount)) * 100 & " %"
+                prgStatus.value = Round((I / .RecordCount) * 100, 0)
+                AccNo = !AccNo
+                'If Accno = "I005" Then MsgBox "Here"
+                lblAccount = AccNo
+                accType = !Glacctype
+                AccGroup = !GLAccGroup
+                AccName = !GlAccName
+                
+                'OpeningBal = getGlBalance(Accno, dtpStartDate, dtpStartDate)
+           
+                ACCBAL = getGlBalance(AccNo, dtpStartDate, dtpFinishDate)
+                If Not success Then
+                    GoTo SysError
+                End If
+                
+'                If UCase(accType) = UCase("Income Statement") Then
+'                    ACCBAL = ACCBAL - OpeningBal
+'                End If
+                
+                transtype = IIf(!NormalBal = "Debit", "DR", "CR")
+                'save
+                If ACCBAL <> 0 Then
+                    sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount],OBAL,DR,CR)"
+                    sql = sql & " Values('" & AccNo & "','" & AccName & "'," & ACCBAL & ",'" & transtype & "','" & dtpStartDate.value & "','" & dtpFinishDate.value & _
+                    "','" & User & "','" & accType & "','" & AccGroup & "',0," & OpeningBal & "," & TotalDr & "," & TotalCr & ")"
+                        
+                    If Not oSaccoMaster.Execute(sql) Then
+                        GoTo SysError
+                    End If
+                End If
+                
+                .MoveNext
+            Wend
+        Else
+            prgStatus.Visible = False
+            lblStatus.Visible = False
+            lblAccount.Visible = False
+        End If
+    End With
+    
+    Set rst = oSaccoMaster.GetRecordset("select REArningsAcc,SuspenseAcc from sysparam")
+If Not rst.EOF Then
+    REarningAcc = rst(0)
+    SuspenseAcc = rst(1)
+End If
+    
+    Set rst = oSaccoMaster.GetRecordset("SELECT  (SELECT     isnull(SUM(Amount),0) FROM  tbbalance WHERE transtype = 'DR') AS Debits, (SELECT     isnull(SUM(Amount),0) FROM  tbbalance WHERE transtype = 'CR') AS Credits")
+    If Not rst.EOF Then
+        If rst("Debits") > rst("Credits") Then
+            Credits = rst("Debits") - rst("Credits")
+            ACCBAL = rst("Debits") - rst("Credits")
+            transtype = "CR"
+        Else
+            Debits = rst("Credits") - rst("Debits")
+            ACCBAL = rst("Credits") - rst("Debits")
+            transtype = "DR"
+        End If
+        
+        If ACCBAL > 0 Then
+            sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype], [Closed],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount])"
+            
+            sql = sql & " Values('" & SuspenseAcc & "','" & AccName & "'," & ACCBAL & ",'" & transtype & "',0,'" & dtpStartDate & "','" & dtpFinishDate.value & _
+            "','" & User & "','" & accType & "','" & AccGroup & "',0)"
+                
+            If Not oSaccoMaster.Execute(sql) Then
+                GoTo SysError
+            End If
+        End If
+        
+        'For BalanceSheet Items, check whether they balance
+        Set rst = oSaccoMaster.GetRecordset("SELECT  isnull((SELECT     SUM(Amount) FROM  tbbalance WHERE transtype = 'DR' and acctype='Balance Sheet'),0) AS Debits, isnull((SELECT     SUM(Amount) FROM  tbbalance WHERE transtype = 'CR' and acctype='Balance Sheet'),0) AS Credits")
+        If Not rst.EOF Then
+            If rst("Debits") > rst("Credits") Then
+                Credits = rst("Debits") - rst("Credits")
+                ACCBAL = rst("Debits") - rst("Credits")
+                transtype = "CR"
+            Else
+                Debits = rst("Credits") - rst("Debits")
+                ACCBAL = rst("Credits") - rst("Debits")
+                transtype = "DR"
+            End If
+            
+        If ACCBAL <> 0 Then
+            sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype], [Closed],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount])"
+            
+            sql = sql & " Values('" & REarningAcc & "','" & UCase("Retained Earnings") & "'," & ACCBAL & ",'" & transtype & "',0,'" & dtpStartDate & "','" & dtpFinishDate.value & _
+            "','" & User & "','" & accType & "','" & AccGroup & "',0)"
+                
+            If Not oSaccoMaster.Execute(sql) Then
+                GoTo SysError
+            End If
+        End If
+        
+        End If
+    End If
+    Exit Sub
+SysError:
+    Command1.Enabled = True
+    MsgBox IIf(ErrorMessage = "", err.description, ErrorMessage), vbInformation
+End Sub
+
+Private Sub Command2_Click()
+    reportname = "incomeandexpenditure.rpt"
+    Show_Sales_Crystal_Report STRFORMULA, reportname, CompanyName
+    Exit Sub
+    
+  Command1_Click
+  Dim rsAccounts As Recordset
+  Dim rsBudgets As Recordset
+  '// get the budget amount and then variances
+  Set rsAccounts = oSaccoMaster.GetRecordset("Select * From GLSETUP order by AccNo")
+         While Not rsAccounts.EOF
+  
+            Set rsBudgets = oSaccoMaster.GetRecordset("Set DateFormat DMY Select Budgetted" _
+            & " As BudgetAmount From BUDGETS where AccNo='" & rsAccounts.Fields("accno") & "' and mmonth='" _
+            & month(dtpFinishDate) & "' and yyear='" & year(dtpFinishDate) & "'")
+            If Not rsBudgets.EOF Then
+            Dim b As Currency
+            '//updates on the tem
+            b = rsBudgets.Fields(0) '* CDbl(month(dtpFinishDate))
+            sql = ""
+            sql = "UPDATE    TBBALANCE  SET budgetAMOUNT =" & b & " where accno='" & rsAccounts.Fields("accno") & "'"
+            oSaccoMaster.ExecuteThis (sql)
+            Else
+                        sql = ""
+            sql = "UPDATE    TBBALANCE  SET budgetAMOUNT=0 where accno='" & rsAccounts.Fields("accno") & "'"
+            oSaccoMaster.ExecuteThis (sql)
+            End If
+            b = 0
+            rsAccounts.MoveNext
+        Wend
+        
+        '//GET THE NETINCOME
+        Dim totexpenses As Currency, TotIncome  As Currency
+        Dim totexpensesB As Currency, TotIncomeB  As Currency
+       
+    Set rs = oSaccoMaster.GetRecordset("SELECT     SUM(TBBALANCE.Amount) AS Expr1,sum(budgetamount) as AI  FROM         TBBALANCE TBBALANCE INNER JOIN  GLSETUP GLSETUP ON TBBALANCE.AccNo = GLSETUP.AccNo WHERE     (GLSETUP.GlAccMainGroup = 'INCOME')")
+        If Not rs.EOF Then
+            If Not IsNull(rs.Fields(0)) Then TotIncome = rs.Fields(0)
+            If Not IsNull(rs.Fields(1)) Then TotIncomeB = rs.Fields(1)
+        End If
+    Set rst = oSaccoMaster.GetRecordset("SELECT     SUM(TBBALANCE.Amount) AS Expr1,sum(budgetamount) as AE  FROM         TBBALANCE TBBALANCE INNER JOIN  GLSETUP GLSETUP ON TBBALANCE.AccNo = GLSETUP.AccNo WHERE     (GLSETUP.GlAccMainGroup = 'EXPENSES')")
+        If Not rst.EOF Then
+            If Not IsNull(rst.Fields(0)) Then totexpenses = rst.Fields(0)
+            If Not IsNull(rst.Fields(1)) Then totexpensesB = rst.Fields(1)
+        End If
+ 
+ reportname = "kimincomeandexpenditure.rpt"
+ 
+ Show_Sales_Crystal_Report "", reportname, "& Company_Name &"
+
+   
+    MousePointer = vbDefault
+
+    Command1.Enabled = True
+    Exit Sub
+SysError:
+    Command1.Enabled = True
+    MsgBox err.description, vbInformation, Me.Caption
+End Sub
+
+Private Sub Command3_Click()
+    '//kimberbalancesheet
+    reportname = "BalanceSheeet.rpt"
+    STRFORMULA = ""
+    Show_Sales_Crystal_Report STRFORMULA, reportname, CompanyName
+Exit Sub
+
+'IF YOU WANT TO DO A CSV FILE
+Command1_Click
+
+ 
+End Sub
+
+
+Private Sub Command4_Click()
+    On Error Resume Next
+    Dim AccNo As String
+    Dim suspense As Double
+    Dim Debits As Double, Credits As Double
+    Dim ACCBAL As Double
+    Dim transtype As String, DocumentNo As String, accType As String, AccGroup As String, AccName As String, TotalDr As Double, TotalCr As Double
     
     
     If year(dtpStartDate) < year(dtpFinishDate) Then
@@ -270,12 +480,12 @@ Private Sub Command1_Click()
     If Not oSaccoMaster.Execute("Truncate table TBBALANCE") Then
         GoTo SysError
     End If
-    sql = "SELECT Accno,NormalBal,glaccType,glaccname,glaccGroup FROM GLSETUP  ORDER BY ACCNO"
+    sql = "SELECT Accno,NormalBal,glaccType,glaccname,glaccGroup FROM GLSETUP WHERE  subtype='" & Cboactivity & "' ORDER BY ACCNO"
     Set rst = oSaccoMaster.GetRecordset(sql)
     With rst
         If Not .EOF Then
             prgStatus.Visible = True
-            LblStatus.Visible = True
+            lblStatus.Visible = True
             lblAccount.Visible = True
             prgStatus.Max = 100
             'prgStatus.Min = 0
@@ -283,19 +493,19 @@ Private Sub Command1_Click()
             While Not .EOF
                 
                 I = I + 1
-                LblStatus.Caption = CStr(Round((I / .RecordCount) * 100, 0)) & " %"
+                lblStatus.Caption = CStr(Round((I / .RecordCount) * 100, 0)) & " %"
                 prgStatus.value = Round((I / .RecordCount) * 100, 0)
-                ACCNO = !ACCNO
+                AccNo = !AccNo
 '                If Accno = "603003" Then
 '                    MsgBox "Here"
 '                End If
-                lblAccount = ACCNO
+                lblAccount = AccNo
                 accType = !Glacctype
                 AccGroup = !GLAccGroup
                 AccName = !GlAccName
                 
                 'OpeningBal = getGlBalance(AccNo, dtpStartDate, dtpStartDate)
-                ACCBAL = getGlBalance(ACCNO, dtpStartDate, dtpFinishDate)
+                ACCBAL = getGlBalance(AccNo, dtpStartDate, dtpFinishDate)
                 If Not success Then
                     GoTo SysError
                 End If
@@ -320,8 +530,8 @@ Private Sub Command1_Click()
                 
                 If ACCBAL <> 0 Then
                     sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount],OBAL,DR,CR)"
-                    sql = sql & " Values('" & ACCNO & "','" & AccName & "'," & ACCBAL & ",'" & transtype & "','" & dtpStartDate & "','" & dtpFinishDate.value & _
-                    "','" & User & "','" & accType & "','" & AccGroup & "',0," & OpeningBal & "," & TotalDr & "," & TotalCr & ")"
+                    sql = sql & " Values('" & AccNo & "','" & AccName & "'," & ACCBAL & ",'" & transtype & "','" & dtpStartDate.value & "','" & dtpFinishDate.value & _
+                    "','" & User & "','" & accType & "','" & AccGroup & "',0,0," & TotalDr & "," & TotalCr & ")"
                         
                     If Not oSaccoMaster.Execute(sql) Then
                         GoTo SysError
@@ -332,7 +542,7 @@ Private Sub Command1_Click()
             Wend
         Else
             prgStatus.Visible = False
-            LblStatus.Visible = False
+            lblStatus.Visible = False
             lblAccount.Visible = False
         End If
     End With
@@ -373,181 +583,19 @@ Private Sub Command1_Click()
                 transtype = "DR"
             End If
         'retained Earnings
-        If ACCBAL <> 0 Then
-            sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype], [Closed],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount])"
-            
-            sql = sql & " Values('" & REarningsAcc & "','" & UCase("Retained Earnings") & "'," & ACCBAL & ",'" & transtype & "',0,'" & dtpStartDate & "','" & dtpFinishDate.value & _
-            "','" & User & "','" & accType & "','" & AccGroup & "',0)"
-                
-            If Not oSaccoMaster.Execute(sql) Then
-                GoTo SysError
-            End If
-        End If
+'        If ACCBAL <> 0 Then
+'            sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype], [Closed],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount])"
+'
+'            sql = sql & " Values('" & REarningsAcc & "','" & UCase("Retained Earnings") & "'," & ACCBAL & ",'" & transtype & "',0,'" & dtpStartDate & "','" & dtpFinishDate.value & _
+'            "','" & User & "','" & accType & "','" & AccGroup & "',0)"
+'
+'            If Not oSaccoMaster.Execute(sql) Then
+'                GoTo SysError
+'            End If
+'        End If
         
         End If
     End If
-    MsgBox "Process Done", vbInformation
-    Exit Sub
-SysError:
-    Command1.Enabled = True
-    MsgBox IIf(ErrorMessage = "", err.description, ErrorMessage), vbInformation
-
-End Sub
-
-Private Sub Command2_Click()
-    reportname = "incomeandexpenditure.rpt"
-    Show_Sales_Crystal_Report STRFORMULA, reportname, CompanyName
-   
-  
-    Exit Sub
-SysError:
-    Command1.Enabled = True
-    MsgBox err.description, vbInformation, Me.Caption
-End Sub
-
-Private Sub Command3_Click()
-    '//kimberbalancesheet
-    reportname = "BalanceSheeet.rpt"
-    STRFORMULA = ""
-    Show_Sales_Crystal_Report STRFORMULA, reportname, CompanyName
-Exit Sub
-
-'IF YOU WANT TO DO A CSV FILE
-Command1_Click
-
- 
-End Sub
-
-
-Private Sub Command4_Click()
-oSaccoMaster.ExecuteThis ("delete from gltransactions where transdescript like'%Interest Loading%'")
-    On Error Resume Next
-    Dim ACCNO As String
-    Dim suspense As Double
-    Dim Debits As Double, Credits As Double
-    Dim ACCBAL As Double, OpeningBal As Double, TotalDr As Double, TotalCr As Double
-    
-    Dim transtype As String, DocumentNo As String, accType As String, AccGroup As String, AccName As String
-    
-     oSaccoMaster.ExecuteThis ("Truncate table TBBALANCE")
-     
-    sql = "SELECT Accno,NormalBal,glaccType,glaccname,glaccGroup FROM GLSETUP  ORDER BY ACCNO"
-    Set rst = oSaccoMaster.GetRecordset(sql)
-    With rst
-        If Not .EOF Then
-            prgStatus.Visible = True
-            LblStatus.Visible = True
-            lblAccount.Visible = True
-            prgStatus.Max = 100
-            'prgStatus.Min = 0
-            I = 0
-            While Not .EOF
-                DoEvents
-                I = I + 1
-                LblStatus.Caption = CStr((I / .RecordCount)) * 100 & " %"
-                prgStatus.value = Round((I / .RecordCount) * 100, 0)
-                ACCNO = !ACCNO
-                'If Accno = "960" Then MsgBox "Here"
-                lblAccount = ACCNO
-                accType = !Glacctype
-                AccGroup = !GLAccGroup
-                AccName = !GlAccName
-                
-                OpeningBal = getGlBalance(ACCNO, dtpStartDate, dtpFinishDate)
-                ACCBAL = getGlBalance(ACCNO, dtpStartDate, dtpFinishDate)
-                If Not success Then
-                    GoTo SysError
-                End If
-                'transtype = IIf(!NormalBal = "Debit", "DR", "CR")
-                'transtype = IIf(!NormalBal = "Debit", "DR", "CR")
-                If !NormalBal = "Debit" Then
-                    If ACCBAL >= 0 Then
-                        transtype = "DR"
-                    Else
-                        transtype = "DR"
-                    End If
-                Else
-                    If ACCBAL >= 0 Then
-                        transtype = "CR"
-                    Else
-                        transtype = "CR"
-                    End If
-                End If
-                
-                'ACCBAL = Abs(ACCBAL)
-                
-                'save
-                
-                If ACCBAL <> 0 Then
-                    sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount],OBAL,DR,CR)"
-                    sql = sql & " Values('" & ACCNO & "','" & AccName & "'," & ACCBAL & ",'" & transtype & "','" & dtpStartDate & "','" & dtpFinishDate.value & _
-                    "','" & User & "','" & accType & "','" & AccGroup & "',0," & OpeningBal & "," & TotalDr & "," & TotalCr & ")"
-                        
-                     oSaccoMaster.ExecuteThis (sql)
-                End If
-                
-                
-                
-            ACCBAL = 0
-            ACCBAL = getGlBalance(ACCNO, DateSerial(year(dtpStartDate) - 1, month(dtpStartDate), Day(dtpStartDate)), DateSerial(year(dtpFinishDate) - 1, month(dtpFinishDate), Day(dtpFinishDate)))
-            sql = "UPDATE    TBBALANCE  SET LASTYEAR =" & ACCBAL & " where accno='" & ACCNO & "'"
-            oSaccoMaster.ExecuteThis (sql)
-            
-            ACCBAL = 0
-            ACCBAL = getGlBalance(ACCNO, DateSerial(year(dtpStartDate) - 2, month(dtpStartDate), Day(dtpStartDate)), DateSerial(year(dtpFinishDate) - 2, month(dtpFinishDate), Day(dtpFinishDate)))
-            sql = "UPDATE    TBBALANCE  SET LASTYEAR1 =" & ACCBAL & " where accno='" & ACCNO & "'"
-            oSaccoMaster.ExecuteThis (sql)
-
-                
-                
-                .MoveNext
-            Wend
-        Else
-            prgStatus.Visible = False
-            LblStatus.Visible = False
-            lblAccount.Visible = False
-        End If
-    End With
-    
-    'previous years
-    
-    
-    
-    Set rst = oSaccoMaster.GetRecordset("SELECT  (SELECT     isnull(SUM(Amount),0) FROM  tbbalance WHERE transtype = 'DR') AS Debits, (SELECT     isnull(SUM(Amount),0) FROM  tbbalance WHERE transtype = 'CR') AS Credits")
-    If Not rst.EOF Then
-        If rst("Debits") > rst("Credits") Then
-            Credits = rst("Debits") - rst("Credits")
-            ACCBAL = rst("Debits") - rst("Credits")
-            transtype = "CR"
-        Else
-            Debits = rst("Credits") - rst("Debits")
-            ACCBAL = rst("Credits") - rst("Debits")
-            transtype = "DR"
-        End If
-        
-        If ACCBAL > 0 Then
-            sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype], [Closed],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount])"
-            
-            sql = sql & " Values('" & SuspenseAcc & "','" & AccName & "'," & ACCBAL & ",'" & transtype & "',0,'" & dtpStartDate & "','" & dtpFinishDate.value & _
-            "','" & User & "','" & accType & "','" & AccGroup & "',0)"
-                
-            oSaccoMaster.ExecuteThis (sql)
-                
-            End If
-        End If
-        
-        'For BalanceSheet Items, check whether they balance
-         If ACCBAL <> 0 Then
-            sql = "Set DateFormat DMY INSERT INTO [tbbalance] ([AccNo],[AccName], [Amount],[Transtype], [Closed],[StartDate], [EndDate], [AuditID], [AccType], [AccGroup], [BudgetAmount])"
-
-            sql = sql & " Values('" & REarningsAcc & "','" & UCase("Retained Earnings") & "'," & ACCBAL & ",'" & transtype & "',0,'" & dtpStartDate & "','" & dtpFinishDate.value & _
-            "','" & User & "','" & accType & "','" & AccGroup & "',0)"
-
-             oSaccoMaster.ExecuteThis (sql)
-        End If
-        
-        
-    
     MsgBox "Process Done", vbInformation
     Exit Sub
 SysError:

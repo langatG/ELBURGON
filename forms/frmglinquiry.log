@@ -1,0 +1,5 @@
+Line 26: Class MSComCtl2.DTPicker of control dtpEnddate was not a loaded control class.
+Line 38: Class MSComCtl2.DTPicker of control dtpstartdate was not a loaded control class.
+Line 111: Class MSComctlLib.ListView of control lvwTrans was not a loaded control class.
+Line 216: Class MSComCtl2.DTPicker of control dtpFromdate was not a loaded control class.
+Line 378: Class MSComctlLib.ListView of control lvememtrans was not a loaded control class.

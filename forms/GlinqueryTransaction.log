@@ -1,0 +1,6 @@
+Line 18: Class MSComctlLib.ProgressBar of control ProgressBar1 was not a loaded control class.
+Line 141: Class MSComCtl2.DTPicker of control dtpDateIssued was not a loaded control class.
+Line 298: Class MSComctlLib.ListView of control ListView3 was not a loaded control class.
+Line 371: Class MSComCtl2.DTPicker of control dtpFromdate was not a loaded control class.
+Line 400: Class MSComCtl2.DTPicker of control dtpTodate was not a loaded control class.
+Line 412: Class MSComctlLib.ListView of control ListView1 was not a loaded control class.

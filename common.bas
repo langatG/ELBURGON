@@ -17,6 +17,7 @@ Public currentUser As Current_User
 Public SelectedDBMS As String
 Public BeginDate As Date
 Public RsLoans As New ADODB.Recordset
+Public tdate As Date
 Public RCanc As Boolean
 Public serverDate  As Date
 Public OldTransDate As Date
@@ -1361,11 +1362,11 @@ On Error GoTo ErrorHandler
 Set cn = CreateObject("adodb.connection")
 Provider = "DSN=MAZIWA"
 cn.Open Provider, "bi"
-    Dim rst As Recordset
-    Set rst = New Recordset
-    rst.Open "select * from reportpath", cn, adOpenStatic, adLockOptimistic
-    If rst.EOF = False Then
-        Report_Path = rst.Fields("reportpath")
+    Dim Rst As Recordset
+    Set Rst = New Recordset
+    Rst.Open "select * from reportpath", cn, adOpenStatic, adLockOptimistic
+    If Rst.EOF = False Then
+        Report_Path = Rst.Fields("reportpath")
     End If
     Report_Path = Report_Path
     PPP = Report_Path

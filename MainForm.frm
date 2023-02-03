@@ -124,7 +124,7 @@ Begin VB.MDIForm MainForm
          _ExtentX        =   2566
          _ExtentY        =   661
          _Version        =   393216
-         Format          =   121307137
+         Format          =   131137537
          UpDown          =   -1  'True
          CurrentDate     =   40095
       End
@@ -1125,7 +1125,7 @@ mnuReports.Enabled = True
 
 'End If
 
-DTPPeriod = Format(Get_Server_Date, "mmm/yyyy")
+dtpPeriod = Format(Get_Server_Date, "mmm/yyyy")
 End Sub
 Private Sub dismenu()
 'On Error Resume Next
@@ -1579,7 +1579,7 @@ Private Sub mnumilkquality_Click()
 Frmquality.Show vbModal
 End Sub
 
-Private Sub mnumilksales1_Click(index As Integer)
+Private Sub mnumilksales1_Click(Index As Integer)
 frmmilksales.Show vbModal
 End Sub
 
@@ -1839,7 +1839,7 @@ frmproduct1s.Show vbModal, Me
 End Sub
 
 Private Sub mnustockana_Click()
-frmstockbalance.Show vbModal
+'frmstockbalance.Show vbModal
 End Sub
 
 Private Sub mnustockba_Click()
@@ -1885,7 +1885,7 @@ End Sub
 
 Private Sub mnuSuppliersReg_Click()
 
- frmMembership.Show vbModal
+frmMembership.Show vbModal
 ' reportname = "suppliersregister.rpt"
 '
 ' Show_Sales_Crystal_Report "", reportname, ""
@@ -2159,7 +2159,7 @@ Dim sno As String
 Dim premium As Double
 Dim tmdate As Date
 Dim DTPenddate As Date
-Dim Balance As Double
+Dim balance As Double
 Dim balaa As Double
 DTPenddate = Format(Get_Server_Date, "dd/mm/yyyy")
 '//before all this let us clear this table called
@@ -2172,7 +2172,7 @@ Set rs = oSaccoMaster.GetRecordset(sql)
 While Not rs.EOF
 'tchp_trxsreport
 sno = rs.Fields(0)
-Balance = rs.Fields(4)
+balance = rs.Fields(4)
 Dim nb As New ADODB.Recordset
 sql = "select top 1 Balance  from tchp_trxs where sno='" & sno & "' order by Id desc"
 Set nb = oSaccoMaster.GetRecordset(sql)
@@ -2215,11 +2215,11 @@ oSaccoMaster.ExecuteThis (sql)
 End If
 'Debug.Print status
 'tchp_trxs
-Set rst = oSaccoMaster.GetRecordset("SELECT     SUM(Debits) AS a, SUM(CreditsD) AS b, SUM(CreditsC) AS c  FROM         tchp_trxs  WHERE     (sno = '" & sno & "')  GROUP BY sno")
-If Not rst.EOF Then
-            a = rst.Fields(0)
-            b = rst.Fields(1)
-            C = rst.Fields(2)
+Set Rst = oSaccoMaster.GetRecordset("SELECT     SUM(Debits) AS a, SUM(CreditsD) AS b, SUM(CreditsC) AS c  FROM         tchp_trxs  WHERE     (sno = '" & sno & "')  GROUP BY sno")
+If Not Rst.EOF Then
+            a = Rst.Fields(0)
+            b = Rst.Fields(1)
+            C = Rst.Fields(2)
             
             '//get balance here
             
@@ -2227,9 +2227,9 @@ If Not rst.EOF Then
                     Dim rr As New ADODB.Recordset
                     Set rr = oSaccoMaster.GetRecordset(sql)
                     If Not rr.EOF Then
-                    Balance = rr.Fields(0)
+                    balance = rr.Fields(0)
                     Else
-                    Balance = 0
+                    balance = 0
                     End If
                 If status = "Pending" Then
                   status = "Pending"
@@ -2237,21 +2237,21 @@ If Not rst.EOF Then
                   End If
                  ' Debug.Print status
                   'Debug.Print sno
-                  If Balance = 0 And status = "New" Then
+                  If balance = 0 And status = "New" Then
                   status = "Valid"
                   GoTo kapjoel
                   End If
 
-                  If premium = Balance Then
+                  If premium = balance Then
                   status = "Suspend"
                   GoTo kapjoel
                   End If
                   
-                  If Balance <= 0 Then
+                  If balance <= 0 Then
                   status = "Valid"
                   GoTo kapjoel
                   End If
-                  If Balance > premium Then
+                  If balance > premium Then
                   status = "Terminate"
                   GoTo kapjoel
                   End If
@@ -2271,14 +2271,14 @@ kapjoel:
             If Phone <> "" Then
                     If status = "Terminated" Then
                     
-                         MsgContent = "Supplier No. " & sno & ", You have an outstanding TCHP balance of " & Format(Balance, "###,###.00") & " and will be terminated from the scheme. You can rejoin the scheme in 6 months time. We will not deduct any more money from your Milk account"
+                         MsgContent = "Supplier No. " & sno & ", You have an outstanding TCHP balance of " & Format(balance, "###,###.00") & " and will be terminated from the scheme. You can rejoin the scheme in 6 months time. We will not deduct any more money from your Milk account"
 
                         
                     End If
                     
                     If status = "Suspend" Then
                     
-                    MsgContent = "Supplier No. " & sno & ", You have an outstanding TCHP balance of " & Format(Balance, "###,###.00") & " and will be Suspended from cover next month. Please pay two premiums next month to regain cover"
+                    MsgContent = "Supplier No. " & sno & ", You have an outstanding TCHP balance of " & Format(balance, "###,###.00") & " and will be Suspended from cover next month. Please pay two premiums next month to regain cover"
 
                     End If
                     If status = "status" Then
@@ -2293,7 +2293,7 @@ kapjoel:
             sql = ""
             sql = "INSERT INTO tchp_trxsreport"
             sql = sql & "                   (sno, Debits, CreditsD, CreditsC, Balance, status,premium,phone,content,msgtype)"
-            sql = sql & "  VALUES     ('" & sno & "'," & a & "," & b & "," & C & "," & Balance & ",'" & status & "'," & premium & ",'" & Phone & "','" & MsgContent & "','Outbox')"
+            sql = sql & "  VALUES     ('" & sno & "'," & a & "," & b & "," & C & "," & balance & ",'" & status & "'," & premium & ",'" & Phone & "','" & MsgContent & "','Outbox')"
             oSaccoMaster.ExecuteThis (sql)
             sql = ""
             sql = "UPDATE    tchp_members  SET      statusr='" & status & "'         where sno='" & sno & "'"
@@ -2306,7 +2306,7 @@ kapjoel:
              sql = ""
             sql = "INSERT INTO tchp_audit"
             sql = sql & "                   (sno, Debits, CreditsD, CreditsC, Balance, status,premium,jan2012,Febstatus)"
-            sql = sql & "  VALUES     ('" & sno & "'," & a & "," & b & "," & C & "," & Balance & ",'" & status & "'," & premium & "," & Balance & ",'" & status & "')"
+            sql = sql & "  VALUES     ('" & sno & "'," & a & "," & b & "," & C & "," & balance & ",'" & status & "'," & premium & "," & balance & ",'" & status & "')"
             oSaccoMaster.ExecuteThis (sql)
             Else
             '//do all the update here.
@@ -2314,124 +2314,124 @@ kapjoel:
             'From tchp_audit
             If month(DTPenddate) = 2 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set Feb2012=" & Balance & ",Marstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Feb2012=" & balance & ",Marstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 3 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set Mar2012=" & Balance & ",Aprilstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Mar2012=" & balance & ",Aprilstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 4 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set Apr2012=" & Balance & ",Maystatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Apr2012=" & balance & ",Maystatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 5 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set May2012=" & Balance & ",junstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set May2012=" & balance & ",junstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 6 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set june2012=" & Balance & ",julstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set june2012=" & balance & ",julstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             '////*****************************other data
             If month(DTPenddate) = 7 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set jul2012=" & Balance & ",augstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set jul2012=" & balance & ",augstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 8 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set aug2012=" & Balance & ",sepstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set aug2012=" & balance & ",sepstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 9 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set sep2012=" & Balance & ",octstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set sep2012=" & balance & ",octstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 10 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set oct2012=" & Balance & ",novstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set oct2012=" & balance & ",novstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 11 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set nov2012=" & Balance & ",decstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set nov2012=" & balance & ",decstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 12 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set dec2012=" & Balance & ",janstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set dec2012=" & balance & ",janstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
            
            '2013
             If month(DTPenddate) = 2 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set Feb2013=" & Balance & ",Marstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Feb2013=" & balance & ",Marstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 3 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set Mar2013=" & Balance & ",Aprilstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Mar2013=" & balance & ",Aprilstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 4 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set Apr2013=" & Balance & ",Maystatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Apr2013=" & balance & ",Maystatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 5 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set May2013=" & Balance & ",junstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set May2013=" & balance & ",junstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 6 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set june2013=" & Balance & ",julstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set june2013=" & balance & ",julstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             '////*****************************other data
             If month(DTPenddate) = 7 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set jul2013=" & Balance & ",augstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set jul2013=" & balance & ",augstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 8 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set aug2013=" & Balance & ",sepstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set aug2013=" & balance & ",sepstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 9 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set sep2013=" & Balance & ",octstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set sep2013=" & balance & ",octstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 10 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set oct2013=" & Balance & ",novstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set oct2013=" & balance & ",novstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 11 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set nov2013=" & Balance & ",decstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set nov2013=" & balance & ",decstatus1='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             If month(DTPenddate) = 12 And year(DTPenddate) = 2013 Then
                 sql = ""
-                sql = "update tchp_audit set dec2013=" & Balance & ",janstatus1='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set dec2013=" & balance & ",janstatus1='" & status & "' where sno='" & sno & "' "
                 'oSaccoMaster.ExecuteThis (sql)
             End If
            
@@ -2442,11 +2442,11 @@ kapjoel:
     a = 0
     b = 0
     C = 0
-    Balance = 0
+    balance = 0
                 sql = ""
             sql = "INSERT INTO tchp_trxsreport"
             sql = sql & "                   (sno, Debits, CreditsD, CreditsC, Balance, status,premium,phone,content,msgtype)"
-            sql = sql & "  VALUES     ('" & sno & "'," & a & "," & b & "," & C & "," & Balance & ",'" & status & "'," & premium & ",'" & Phone & "','" & MsgContent & "','Outbox')"
+            sql = sql & "  VALUES     ('" & sno & "'," & a & "," & b & "," & C & "," & balance & ",'" & status & "'," & premium & ",'" & Phone & "','" & MsgContent & "','Outbox')"
             oSaccoMaster.ExecuteThis (sql)
             sql = ""
             sql = "UPDATE    tchp_members  SET      statusr='" & status & "'         where sno='" & sno & "'"
@@ -2461,7 +2461,7 @@ kapjoel:
              sql = ""
             sql = "INSERT INTO tchp_audit"
             sql = sql & "                   (sno, Debits, CreditsD, CreditsC, Balance, status,premium,jan2012,Febstatus)"
-            sql = sql & "  VALUES     ('" & sno & "'," & a & "," & b & "," & C & "," & Balance & ",'" & status & "'," & premium & "," & Balance & ",'" & status & "')"
+            sql = sql & "  VALUES     ('" & sno & "'," & a & "," & b & "," & C & "," & balance & ",'" & status & "'," & premium & "," & balance & ",'" & status & "')"
             oSaccoMaster.ExecuteThis (sql)
             Else
             '//do all the update here.
@@ -2469,31 +2469,31 @@ kapjoel:
             'From tchp_audit
             If month(DTPenddate) = 2 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set Feb2012=" & Balance & ",Marstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Feb2012=" & balance & ",Marstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 3 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set Mar2012=" & Balance & ",Aprilstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Mar2012=" & balance & ",Aprilstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 4 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set Apr2012=" & Balance & ",Maystatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set Apr2012=" & balance & ",Maystatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 5 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set May2012=" & Balance & ",junstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set May2012=" & balance & ",junstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
             If month(DTPenddate) = 6 And year(DTPenddate) = 2012 Then
                 sql = ""
-                sql = "update tchp_audit set june2012=" & Balance & ",julstatus='" & status & "' where sno='" & sno & "' "
+                sql = "update tchp_audit set june2012=" & balance & ",julstatus='" & status & "' where sno='" & sno & "' "
                 oSaccoMaster.ExecuteThis (sql)
             End If
             
