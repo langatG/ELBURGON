@@ -2,7 +2,7 @@ VERSION 5.00
 Object = "{86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCT2.OCX"
 Begin VB.Form frmproduct1s 
    Caption         =   "PRODUCTS UPDATE"
-   ClientHeight    =   7860
+   ClientHeight    =   7620
    ClientLeft      =   60
    ClientTop       =   345
    ClientWidth     =   7725
@@ -10,9 +10,26 @@ Begin VB.Form frmproduct1s
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   7860
+   ScaleHeight     =   7620
    ScaleWidth      =   7725
    StartUpPosition =   1  'CenterOwner
+   Begin VB.CommandButton cmdUpdate 
+      Caption         =   "Update price"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   375
+      Left            =   2280
+      TabIndex        =   40
+      Top             =   7080
+      Width           =   1575
+   End
    Begin VB.ComboBox cboBranch 
       Height          =   315
       Left            =   1680
@@ -148,7 +165,7 @@ Begin VB.Form frmproduct1s
    Begin VB.CheckBox chkserialrequired 
       Caption         =   "Serial Required"
       Height          =   375
-      Left            =   5400
+      Left            =   6240
       TabIndex        =   19
       Top             =   7080
       Width           =   1455
@@ -165,7 +182,7 @@ Begin VB.Form frmproduct1s
    Begin VB.CommandButton cmddelete 
       Caption         =   "&Delete"
       Height          =   375
-      Left            =   3120
+      Left            =   3960
       TabIndex        =   17
       Top             =   7080
       Width           =   975
@@ -201,13 +218,13 @@ Begin VB.Form frmproduct1s
       _ExtentX        =   2355
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   120455169
+      Format          =   120520705
       CurrentDate     =   38814
    End
    Begin VB.CommandButton cmdclose 
       Caption         =   "Close"
       Height          =   375
-      Left            =   4320
+      Left            =   5160
       TabIndex        =   11
       Top             =   7080
       Width           =   975
@@ -215,7 +232,7 @@ Begin VB.Form frmproduct1s
    Begin VB.CommandButton cmdsave 
       Caption         =   "&Save"
       Height          =   375
-      Left            =   1920
+      Left            =   1200
       TabIndex        =   5
       Top             =   7080
       Width           =   975
@@ -223,7 +240,7 @@ Begin VB.Form frmproduct1s
    Begin VB.CommandButton cmdnew 
       Caption         =   "New"
       Height          =   375
-      Left            =   720
+      Left            =   120
       TabIndex        =   10
       Top             =   7080
       Width           =   975
@@ -414,7 +431,7 @@ Exit Sub
 
 End If
 '*****************************************
-Set rst = New Recordset
+Set Rst = New Recordset
 Dim bo As Boolean
 'Dim cn As Connection
 
@@ -430,21 +447,21 @@ cn.Execute sql
 
 sql = ""
 sql = "select * from ag_stockbalance where p_code='" & txtpcode & "' order by trackid"
-Set rst = New ADODB.Recordset
-rst.Open sql, cn, adOpenKeyset, adLockOptimistic
+Set Rst = New ADODB.Recordset
+Rst.Open sql, cn, adOpenKeyset, adLockOptimistic
 
-If Not rst.EOF Then
-While Not rst.EOF
+If Not Rst.EOF Then
+While Not Rst.EOF
 sql = ""
-sql = "delete from ag_stockbalance where trackid=" & rst.Fields("trackid") & ""
+sql = "delete from ag_stockbalance where trackid=" & Rst.Fields("trackid") & ""
 cn.Execute sql
 
-rst.MoveNext
+Rst.MoveNext
 Wend
 End If
 
 MsgBox "You have successfully deleted product code", vbInformation
-txtbalance = ""
+txtBalance = ""
 txtpcode = ""
 txtpname = ""
 txtSERIALNO = ""
@@ -468,7 +485,7 @@ txtpprice = ""
 txtquantity = ""
 cbosupplier = ""
 txtpname = ""
-txtbalance = ""
+txtBalance = ""
 txtSERIALNO = ""
 End Sub
 
@@ -491,9 +508,9 @@ Set rs = oSaccoMaster.GetRecordset(sql)
 While Not rs.EOF
 pcode = rs.Fields("p_code")
 '//get the last date
-Set rst = oSaccoMaster.GetRecordset("set dateformat dmy select top 1 * from ag_stockbalance where p_code='" & pcode & "' order by transdate desc,trackid desc")
-If Not rst.EOF Then
-lastdate = rst.Fields("transdate")
+Set Rst = oSaccoMaster.GetRecordset("set dateformat dmy select top 1 * from ag_stockbalance where p_code='" & pcode & "' order by transdate desc,trackid desc")
+If Not Rst.EOF Then
+lastdate = Rst.Fields("transdate")
 End If
 '//get the last date sold
 sql = ""
@@ -565,7 +582,7 @@ reportname = "agrovetagingreport.rpt"
 End Sub
 
 Private Sub cmdsave_Click()
-Set rst = New Recordset
+Set Rst = New Recordset
 If lbldracc = "" Then MsgBox "select the account to Debit": Exit Sub
 
 If lblcracc = "" Then MsgBox "select the account to credit": Exit Sub
@@ -582,7 +599,7 @@ MsgBox "Quantity cannot be Zero", vbInformation
 Exit Sub
 
 End If
-If Trim(txtbalance) = "" Then txtbalance = 0
+If Trim(txtBalance) = "" Then txtBalance = 0
  If chkserialrequired = vbChecked Then
 
     seria = 1
@@ -602,7 +619,7 @@ If Trim(txtbalance) = "" Then txtbalance = 0
    sql = "SELECT     UserLoginID, UserGroup, SUPERUSER From UserAccounts where UserLoginID='" & User & "'"
     Set rs = oSaccoMaster.GetRecordset(sql)
     If Not rs.EOF Then
-        If rs!usergroup <> "Manager" Then
+        If rs!UserGroup <> "Manager" Or rs!UserGroup <> "Accounts" Then
             MsgBox "You are not allowed to Reverse stock", vbInformation
             Exit Sub
         End If
@@ -620,7 +637,7 @@ If rs.EOF Then
 If txtSERIALNO = "" Then txtSERIALNO = 0
 sql = ""
 sql = "set dateformat dmy insert into  ag_products(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
-sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtSERIALNO.Text & "','" & txtquantity.Text & "','" & txtbalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','" & cbosupplier & "',0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cbobranch & "')"
+sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtSERIALNO.Text & "','" & txtquantity.Text & "','" & txtBalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','" & cbosupplier & "',0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cbobranch & "')"
 cn.Execute sql
 
 
@@ -630,7 +647,7 @@ If txtpprice = "" Then txtpprice = 0
 sql = ""
 sql = "set dateformat DMY INSERT INTO ag_stockbalance"
 sql = sql & " (p_code, productname, openningstock, changeinstock, stockbalance, transdate,companyid,pprice,sprice,RLevel)"
-sql = sql & " VALUES     ('" & txtpcode.Text & "','" & txtpname & "', " & txtbalance & ", " & txtquantity & ", " & txtbalance.Text + txtquantity.Text & ", '" & txtdateenterered & "',1," & txtpprice & "," & txtsellingprice & "," & txtRLevel & ")"
+sql = sql & " VALUES     ('" & txtpcode.Text & "','" & txtpname & "', " & txtBalance & ", " & txtquantity & ", " & txtBalance.Text + txtquantity.Text & ", '" & txtdateenterered & "',1," & txtpprice & "," & txtsellingprice & "," & txtRLevel & ")"
 cn.Execute sql
 
 
@@ -651,7 +668,7 @@ If Not rsst.EOF Then
 sql = ""
 sql = "set dateformat DMY INSERT INTO ag_stockbalance"
 sql = sql & " (p_code, productname, openningstock, changeinstock, stockbalance, transdate,companyid)"
-sql = sql & " VALUES     ('" & txtpcode & "', '" & txtpname & "', '" & txtbalance & "', '" & txtquantity & "', '" & txtquantity.Text + rs.Fields("qout") & "', '" & txtdateenterered & "',1)"
+sql = sql & " VALUES     ('" & txtpcode & "', '" & txtpname & "', '" & txtBalance & "', '" & txtquantity & "', '" & txtquantity.Text + rs.Fields("qout") & "', '" & txtdateenterered & "',1)"
 cn.Execute sql
 
 
@@ -668,13 +685,13 @@ End If
 
 End If
 If seria = 1 Then
-Set rst = Nothing
+Set Rst = Nothing
     sql = ""
    sql = "select * from serialno where serialno='" & txtSERIALNO & "' AND P_CODE='" & txtpcode & "' and used=0"
-   Set rst = New ADODB.Recordset
-   rst.Open sql, cn, adOpenKeyset, adLockOptimistic
+   Set Rst = New ADODB.Recordset
+   Rst.Open sql, cn, adOpenKeyset, adLockOptimistic
 
-If rst.EOF Then
+If Rst.EOF Then
 sql = ""
 sql = "set dateformat DMY INSERT INTO serialno(serialno,p_code,used)"
 sql = sql & " values('" & txtSERIALNO & "','" & txtpcode & "',0)"
@@ -691,14 +708,14 @@ txtSERIALNO = 0
 End If
 
 sql = "set dateformat dmy insert into  ag_products3(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
-sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtSERIALNO.Text & "','" & txtquantity.Text & "','" & txtbalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','" & cbosupplier & "',0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cbobranch & "')"
+sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtSERIALNO.Text & "','" & txtquantity.Text & "','" & txtBalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','" & cbosupplier & "',0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cbobranch & "')"
 cn.Execute sql
 
 sql = ""
 sql = "set dateformat dmy insert into gltransactions(transdate,amount,draccno,craccno,documentno,source,transdescript,auditid,cash,doc_posted) values('" & txtdateenterered & "'," & txtquantity & " *" & txtpprice & ",'" & lbldracc & "','" & lblcracc & "','stock intake','" & cbosupplier & "' ,'stock intake','" & User & "',0,0)"
 oSaccoMaster.ExecuteThis (sql)
 
-txtbalance = ""
+txtBalance = ""
 txtpcode = ""
 txtpname = ""
 txtSERIALNO = ""
@@ -710,23 +727,70 @@ cbosupplier = ""
 MsgBox "Record Saved Successfully"
 End Sub
 
+Private Sub cmdupdate_Click()
+On Error GoTo ErrorHandler
+    If txtpcode = "" Then
+        MsgBox "Please select the product code to be updated", vbInformation
+        txtpcode.SetFocus
+        Exit Sub
+    End If
+    MsgBox "Date should be correct", vbInformation
+    
+    sql = "SELECT     UserLoginID, UserGroup, SUPERUSER From UserAccounts where UserLoginID='" & User & "'"
+    Set rs = oSaccoMaster.GetRecordset(sql)
+    If Not rs.EOF Then
+        If rs!UserGroup <> "Accounts" Then
+            MsgBox "You are not allowed to Reverse stock", vbInformation
+            Exit Sub
+        End If
+    End If
+    
+    sql = ""
+    sql = "set dateformat dmy update   ag_products set sprice='" & txtsellingprice & "',pprice='" & txtpprice & "' where p_code='" & txtpcode & "'"
+    oSaccoMaster.ExecuteThis (sql)
+    sql = "set dateformat dmy update   ag_stockbalance set sprice='" & txtsellingprice & "',pprice='" & txtpprice & "' where p_code='" & txtpcode & "' and transdate>= '" & txtdateenterered.value & "'"
+    oSaccoMaster.ExecuteThis (sql)
+    
+    Set rs = New Recordset
+    sql = "Select * from ag_Products4 where p_code='" & txtpcode & "'and date_entered = '" & txtdateenterered.value & "'"
+    Set rs = oSaccoMaster.GetRecordset(sql)
+    If Not rs.EOF Then
+            sql = ""
+            sql = "set dateformat dmy update   ag_Products4 set sprice='" & txtsellingprice & "',pprice='" & txtpprice & "' where p_code='" & txtpcode & "'and date_entered = '" & txtdateenterered.value & "'"
+            oSaccoMaster.ExecuteThis (sql)
+    End If
+    
+'    Set rs = New Recordset
+'    sql = "Select * from GLTRANSACTIONS where TransDate = '" & txtdateenterered.value & "'and TransDescript='" & txtpname & "' and DocumentNo='stock intake'"
+'    Set rs = oSaccoMaster.GetRecordset(sql)
+'    If Not rs.EOF Then
+'        sql = ""
+'        sql = "set dateformat dmy update   GLTRANSACTIONS set Amount=" & txtreceived * txtpprice & " where TransDate = '" & txtdateenterered.value & "'and TransDescript='" & txtpname & "' and DocumentNo='stock intake'"
+'        oSaccoMaster.ExecuteThis (sql)
+'    End If
+    MsgBox "Price Updated Sucessfully"
+ Exit Sub
+ErrorHandler:
+ MsgBox err.description
+End Sub
+
 Private Sub Command1_Click()
 frmSupplier.Show vbModal
 End Sub
 Private Sub Form_Load()
 txtdateenterered = Format(Date, "dd,mm,yyyy")
- Set rst = New Recordset
+ Set Rst = New Recordset
     Dim cn As Connection
     Set cn = New ADODB.Connection
     Provider = "MAZIWA"
     'provider = cn
     cn.Open Provider, "bi"
-    Set rst = New Recordset
+    Set Rst = New Recordset
     sql = "Select companyname from ag_Supplier1"
-    rst.Open sql, cn, adOpenKeyset, adLockOptimistic
-    While Not rst.EOF
-    cbosupplier.AddItem rst.Fields(0)
-    rst.MoveNext
+    Rst.Open sql, cn, adOpenKeyset, adLockOptimistic
+    While Not Rst.EOF
+    cbosupplier.AddItem Rst.Fields(0)
+    Rst.MoveNext
     Wend
     
     Set rs = New Recordset
@@ -741,32 +805,32 @@ txtdateenterered = Format(Date, "dd,mm,yyyy")
 End Sub
 
 Private Sub lblcracc_Change()
-    Set rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & lblcracc & "'")
-    If Not rst.EOF Then
-    txtcracc = rst.Fields("glaccname")
+    Set Rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & lblcracc & "'")
+    If Not Rst.EOF Then
+    txtcracc = Rst.Fields("glaccname")
     End If
 
 End Sub
 
 Private Sub lblcracc_Click()
-    Set rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & lblcracc & "'")
-    If Not rst.EOF Then
-    txtcracc = rst.Fields("glaccname")
+    Set Rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & lblcracc & "'")
+    If Not Rst.EOF Then
+    txtcracc = Rst.Fields("glaccname")
     End If
 
 End Sub
 
 Private Sub lbldracc_Change()
-    Set rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & lbldracc & "'")
-    If Not rst.EOF Then
-    txtdracc = rst.Fields("glaccname")
+    Set Rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & lbldracc & "'")
+    If Not Rst.EOF Then
+    txtdracc = Rst.Fields("glaccname")
     End If
 End Sub
 
 Private Sub lbldracc_Click()
-    Set rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & lbldracc & "'")
-    If Not rst.EOF Then
-    txtdracc = rst.Fields("glaccname")
+    Set Rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & lbldracc & "'")
+    If Not Rst.EOF Then
+    txtdracc = Rst.Fields("glaccname")
     End If
 End Sub
 
@@ -804,9 +868,9 @@ If Not IsNull(rs.Fields(4)) Then cbosupplier = (rs.Fields(4))
 If Not IsNull(rs.Fields(5)) Then txtpprice = (rs.Fields(5))
 If Not IsNull(rs.Fields(6)) Then txtsellingprice = (rs.Fields(6))
 'If Not IsNull(rs.Fields(2)) Then txtserialno = (rs.Fields(2))
-If Not IsNull(rs.Fields(3)) Then txtbalance = (rs.Fields(3))
+If Not IsNull(rs.Fields(3)) Then txtBalance = (rs.Fields(3))
 
-If txtbalance <= 0 Then
+If txtBalance <= 0 Then
 MsgBox "Your stock is below zero please reorder", vbInformation
 End If
 '// check with serial no if it exist
@@ -890,11 +954,11 @@ rs.Open sql, cn
 If Not rs.EOF Then
  txtpcode = (rs.Fields(0))
 If Not IsNull(rs.Fields(1)) Then txtpname = (rs.Fields(1))
-If Not IsNull(rs.Fields(3)) Then txtbalance = (rs.Fields(3))
+If Not IsNull(rs.Fields(3)) Then txtBalance = (rs.Fields(3))
 If Not IsNull(rs.Fields(4)) Then cbosupplier = (rs.Fields(4))
 If Not IsNull(rs.Fields(5)) Then txtpprice = (rs.Fields(5))
 If Not IsNull(rs.Fields(6)) Then txtsellingprice = (rs.Fields(6))
-If txtbalance <= 0 Then
+If txtBalance <= 0 Then
 MsgBox "Warning:Your stock is below zero please reorder", vbInformation
 Else
 
