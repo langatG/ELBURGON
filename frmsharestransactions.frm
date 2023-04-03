@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
 Object = "{86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCT2.OCX"
 Begin VB.Form frmsharestransactions 
    Caption         =   "Shares Transactions"
@@ -21,7 +21,7 @@ Begin VB.Form frmsharestransactions
       _ExtentX        =   3625
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   37158913
+      Format          =   61079553
       CurrentDate     =   41201
    End
    Begin VB.CommandButton cmdupdate 
@@ -91,7 +91,7 @@ Begin VB.Form frmsharestransactions
       _ExtentX        =   4471
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   37158913
+      Format          =   61079553
       CurrentDate     =   40637
    End
    Begin VB.TextBox txtidno 
@@ -397,7 +397,7 @@ End Sub
 
 Private Sub cmdupdate_Click()
 Dim txtTCHPBalances As Double
-Set rst = New ADODB.Recordset
+Set Rst = New ADODB.Recordset
 Set rs = oSaccoMaster.GetRecordset("SELECT SNo FROM d_Suppliers WHERE SNo = '" & txtTo & "'")
 If rs.RecordCount = 0 Then
  MsgBox "Please enter a valid receipeint number."
@@ -405,10 +405,10 @@ If rs.RecordCount = 0 Then
  Exit Sub
 End If
 
-Set Rst3 = oSaccoMaster.GetRecordset("SELECT SNo FROM d_Suppliers WHERE SNo = '" & txtsno & "'")
+Set Rst3 = oSaccoMaster.GetRecordset("SELECT SNo FROM d_Suppliers WHERE SNo = '" & txtSNo & "'")
 If Rst3.RecordCount = 0 Then
   MsgBox "Please enter a valid Donor number ."
-  txtsno.SetFocus
+  txtSNo.SetFocus
   Exit Sub
 End If
 
@@ -417,15 +417,15 @@ If txtbal < 1 Then
   Exit Sub
 End If
 
-If txtamount < 1 Then
+If txtAmount < 1 Then
   MsgBox "Please Transfer More Than One Shillings shares ."
   Exit Sub
 End If
  '//get the balance
  Set rs = oSaccoMaster.GetRecordset("SELECT * FROM d_Suppliers WHERE SNo = '" & txtTo & "'")
- Set Rst3 = oSaccoMaster.GetRecordset("SELECT * FROM d_Suppliers WHERE SNo = '" & txtsno & "'")
- Set rst = oSaccoMaster.GetRecordset("SELECT SNo FROM d_SharesReport WHERE Sno = '" & txtTo & "'")
- If rst.EOF Then
+ Set Rst3 = oSaccoMaster.GetRecordset("SELECT * FROM d_Suppliers WHERE SNo = '" & txtSNo & "'")
+ Set Rst = oSaccoMaster.GetRecordset("SELECT SNo FROM d_SharesReport WHERE Sno = '" & txtTo & "'")
+ If Rst.EOF Then
    Dim namecheck As String
  namecheck = Replace(rs!NAMES, "'", "")
     sql = ""
@@ -433,22 +433,22 @@ End If
     sql = sql & " values ('" & txtTo & "','" & namecheck & "','" & rs!idno & "','SHARES','0') "
     oSaccoMaster.ExecuteThis (sql)
  End If
- Set rst1 = oSaccoMaster.GetRecordset("SELECT SNo FROM d_SharesReport WHERE Sno = '" & txtsno & "'")
- If rst1.EOF Then
+ Set Rst1 = oSaccoMaster.GetRecordset("SELECT SNo FROM d_SharesReport WHERE Sno = '" & txtSNo & "'")
+ If Rst1.EOF Then
     'Dim namecheck As String
  namecheck = Replace(Rst3!NAMES, "'", "")
     sql = ""
     sql = "set dateformat dmy insert into d_SharesReport(Sno, Name, IDNo, Type, Amount)"
-    sql = sql & " values ('" & txtsno & "','" & namecheck & "','" & Rst3!idno & "','SHARES','0') "
+    sql = sql & " values ('" & txtSNo & "','" & namecheck & "','" & Rst3!idno & "','SHARES','0') "
     oSaccoMaster.ExecuteThis (sql)
  End If
  '//receipeint
    
-        txtTCHPBalances = txtamount + CCur(balanceto)
+        txtTCHPBalances = txtAmount + CCur(balanceto)
         
           sql = ""
           sql = "set dateformat dmy insert into d_sconribution([sno],[transdate],[amount],[bal],[transdescription],[auditid],datepostedtoledger,toledgers)"
-          sql = sql & " values ('" & txtTo & "','" & DTPicker1 & "','" & txtamount & "','" & txtTCHPBalances & "','Shares-Transfer from" & txtsno & "','" & User & "','" & DTPicker1 & "',0) "
+          sql = sql & " values ('" & txtTo & "','" & DTPicker1 & "','" & txtAmount & "','" & txtTCHPBalances & "','Shares-Transfer from" & txtSNo & "','" & User & "','" & DTPicker1 & "',0) "
           oSaccoMaster.ExecuteThis (sql)
           
           sql = ""
@@ -462,23 +462,23 @@ End If
  '//get the balance
  '//receipeint
 
-  txtTCHPBalances = CCur(txtbal) - CCur(txtamount)
+  txtTCHPBalances = CCur(txtbal) - CCur(txtAmount)
 
   sql = ""
   sql = "set dateformat dmy insert into d_sconribution([sno],[transdate],[amount],[bal],[transdescription],[auditid],datepostedtoledger,toledgers)"
-  sql = sql & " values ('" & txtsno & "','" & DTPicker1 & "','" & ((txtamount) * -1) & "','" & txtTCHPBalances & "','Shares-Transfer to " & txtTo & "','" & User & "','" & DTPicker1 & "',0) "
+  sql = sql & " values ('" & txtSNo & "','" & DTPicker1 & "','" & ((txtAmount) * -1) & "','" & txtTCHPBalances & "','Shares-Transfer to " & txtTo & "','" & User & "','" & DTPicker1 & "',0) "
   oSaccoMaster.ExecuteThis (sql)
   
   sql = ""
-  sql = "update d_SharesReport set Amount=" & txtTCHPBalances & " where sno='" & txtsno & "' "
+  sql = "update d_SharesReport set Amount=" & txtTCHPBalances & " where sno='" & txtSNo & "' "
   oSaccoMaster.ExecuteThis (sql)
 
 
 MsgBox "Shares Transfer saved successfully!"
-txtsno = ""
+txtSNo = ""
 txtTo = ""
 txtbal = ""
-txtamount = ""
+txtAmount = ""
 
 End Sub
 
@@ -537,16 +537,16 @@ Private Sub txtSNo_Change()
 
 
 sql = "SET dateformat dmy SELECT     idno, Names, type, Location, mno, regdate"
-sql = sql & " From d_suppliers WHERE  sno = '" & txtsno & "'" 'Period = '" & Enddate & "' AND
+sql = sql & " From d_suppliers WHERE  sno = '" & txtSNo & "'" 'Period = '" & Enddate & "' AND
 
 Set rs2 = oSaccoMaster.GetRecordset(sql)
 If rs2.RecordCount > 0 Then
-txtIdNo = rs2.Fields(0)
+txtidno = rs2.Fields(0)
 txtName = rs2.Fields(1)
 'cboSex = rs2.Fields(2)
 txtLocation = rs2.Fields(3)
 Dim bal As Double
-DTPregdate = Date
+DTPRegDate = Date
 'DTPregdate = IIf(IsNull(rs2.Fields(5)), Date, rs2.Fields(5))
 'optCash.value = rs2.Fields(6).value
 'Set rs = oSaccoMaster.GetRecordset("select bal from d_shares where sno='" & txtsno & "'")
@@ -554,7 +554,7 @@ DTPregdate = Date
 Set rs = oSaccoMaster.GetRecordset(" SELECT     d_supplier_deduc.SNo, d_supplier_deduc.Description, SUM(d_supplier_deduc.Amount) AS amount, d_Suppliers.Names" _
 & " FROM d_Suppliers AS d_Suppliers INNER JOIN d_supplier_deduc AS d_supplier_deduc ON d_Suppliers.SNo = d_supplier_deduc.SNo" _
 & " WHERE     (d_supplier_deduc.Description LIKE '%shares%')" _
-& "GROUP BY d_supplier_deduc.SNo, d_Suppliers.Names, d_supplier_deduc.Description HAVING      (d_supplier_deduc.SNo = '" & txtsno & "') ORDER BY d_supplier_deduc.SNo")
+& "GROUP BY d_supplier_deduc.SNo, d_Suppliers.Names, d_supplier_deduc.Description HAVING      (d_supplier_deduc.SNo = '" & txtSNo & "') ORDER BY d_supplier_deduc.SNo")
 If Not rs.EOF Then
 txtbal = rs.Fields(2)
 bal = txtbal
@@ -564,11 +564,11 @@ End If
 
 
 Dim rss As New Recordset, amt As Double, rsts As New Recordset, shareamt As Double, TXTshares As Double
-Set rsts = oSaccoMaster.GetRecordset("SELECT    SUM(Amount) AS amtt From d_sconribution WHERE     (transdescription LIKE '%shares%') AND (SNo = '" & txtsno & "')")
+Set rsts = oSaccoMaster.GetRecordset("SELECT    isnull(SUM(Amount),0) AS amtt From d_sconribution WHERE     (transdescription LIKE '%shares%') AND (SNo = '" & txtSNo & "')")
 If Not rsts.EOF Then
 shareamt = IIf(IsNull(rsts!amtt), 0, rsts!amtt)
 End If
-Set rss = oSaccoMaster.GetRecordset("SELECT    SUM(Amount) AS amt From d_supplier_deduc WHERE     (Description LIKE '%shares%') AND (SNo = '" & txtsno & "')")
+Set rss = oSaccoMaster.GetRecordset("SELECT  isnull(SUM(Amount),0) AS amt From d_supplier_deduc WHERE     (Description LIKE '%shares%') AND (SNo = '" & txtSNo & "')")
 If Not rss.EOF Then
 TXTshares = IIf(IsNull(rss!amt), 0, rss!amt) + shareamt
 End If
@@ -580,7 +580,7 @@ Dim tamount, tamount1, tamount2 As Double
 '& "FROM d_Suppliers AS d_Suppliers INNER JOIN d_supplier_deduc AS d_supplier_deduc ON d_Suppliers.SNo = d_supplier_deduc.SNo" _
 '& "WHERE     (d_supplier_deduc.Description LIKE '%shares%')" _
 '& "GROUP BY d_supplier_deduc.SNo, d_Suppliers.Names, d_supplier_deduc.Description HAVING      (d_supplier_deduc.SNo = '" & txtsno & "') ORDER BY d_supplier_deduc.SNo")
-Set rs = oSaccoMaster.GetRecordset("SELECT    id, SNo, Date_Deduc, Description, Amount,auditid From d_supplier_deduc WHERE     (Description LIKE '%shares%') AND (SNo = '" & txtsno & "') ORDER BY Date_Deduc")
+Set rs = oSaccoMaster.GetRecordset("SELECT    id, SNo, Date_Deduc, Description, Amount,auditid From d_supplier_deduc WHERE     (Description LIKE '%shares%') AND (SNo = '" & txtSNo & "') ORDER BY Date_Deduc")
 tamount = 0
 tamount1 = 0
 tamount2 = 0
@@ -588,7 +588,7 @@ lvwshares.ListItems.Clear
 With rs
     While Not rs.EOF
       
-    Set li = lvwshares.ListItems.Add(, , IIf(IsNull(!Id), 1, !Id))
+    Set li = lvwshares.ListItems.Add(, , IIf(IsNull(!id), 1, !id))
        If rs.Fields("Date_Deduc") <> "" Then li.ListSubItems.Add , , rs.Fields("Date_Deduc")
        If rs.Fields("Amount") <> "" Then li.ListSubItems.Add , , rs.Fields("Amount")
        If rs.Fields("amount") <> "" Then li.ListSubItems.Add , , rs.Fields("amount")
@@ -600,11 +600,11 @@ With rs
     Wend
 End With
 
-Set rs = oSaccoMaster.GetRecordset("SELECT id,sno, transdate, transdescription ,amount, auditid From d_sconribution WHERE (transdescription LIKE '%shares%') AND (SNo = '" & txtsno & "') ORDER BY transdate")
+Set rs = oSaccoMaster.GetRecordset("SELECT id,sno, transdate, transdescription ,amount, auditid From d_sconribution WHERE (transdescription LIKE '%shares%') AND (SNo = '" & txtSNo & "') ORDER BY transdate")
 With rs
     While Not rs.EOF
       
-    Set li = lvwshares.ListItems.Add(, , IIf(IsNull(!Id), 1, !Id))
+    Set li = lvwshares.ListItems.Add(, , IIf(IsNull(!id), 1, !id))
        If rs.Fields("transdate") <> "" Then li.ListSubItems.Add , , rs.Fields("transdate")
        If rs.Fields("amount") <> "" Then li.ListSubItems.Add , , rs.Fields("amount")
        If rs.Fields("amount") <> "" Then li.ListSubItems.Add , , rs.Fields("amount")
@@ -633,7 +633,7 @@ sql = sql & " From d_suppliers WHERE  sno = '" & txtTo & "'" 'Period = '" & Endd
 
 Set rs2 = oSaccoMaster.GetRecordset(sql)
 If rs2.RecordCount > 0 Then
-    txtIdNo = rs2.Fields(0)
+    txtidno = rs2.Fields(0)
     Label10 = rs2.Fields(1)
     
     'optCash.value = rs2.Fields(6).value

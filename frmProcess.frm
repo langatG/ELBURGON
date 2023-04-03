@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
 Object = "{86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCT2.OCX"
 Begin VB.Form frmProcess 
    BackColor       =   &H00C0FFFF&
@@ -131,7 +131,7 @@ Begin VB.Form frmProcess
       _ExtentX        =   2778
       _ExtentY        =   450
       _Version        =   393216
-      Format          =   111083521
+      Format          =   117899265
       CurrentDate     =   40555
    End
    Begin MSComCtl2.DTPicker DTPfrom 
@@ -143,7 +143,7 @@ Begin VB.Form frmProcess
       _ExtentX        =   2778
       _ExtentY        =   450
       _Version        =   393216
-      Format          =   111083521
+      Format          =   117899265
       CurrentDate     =   40555
    End
    Begin VB.CommandButton cmdtotalmonthlyq 
@@ -181,7 +181,7 @@ Begin VB.Form frmProcess
       _ExtentX        =   2990
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   111083521
+      Format          =   117833729
       CurrentDate     =   40440
    End
    Begin VB.CommandButton cmdendofday 
@@ -226,7 +226,7 @@ Begin VB.Form frmProcess
          Italic          =   0   'False
          Strikethrough   =   0   'False
       EndProperty
-      Format          =   111083521
+      Format          =   117899265
       CurrentDate     =   40214
    End
    Begin VB.CheckBox chkStop 
@@ -279,7 +279,7 @@ Begin VB.Form frmProcess
          Strikethrough   =   0   'False
       EndProperty
       CalendarBackColor=   16384
-      Format          =   111083521
+      Format          =   117833729
       CurrentDate     =   40214
    End
    Begin MSComctlLib.ProgressBar ProgressBar2 
@@ -312,7 +312,7 @@ Begin VB.Form frmProcess
          Italic          =   0   'False
          Strikethrough   =   0   'False
       EndProperty
-      Format          =   111083521
+      Format          =   117899265
       CurrentDate     =   40214
    End
    Begin VB.Label Label51 
@@ -435,7 +435,7 @@ frmProcess.Caption = RsLessAmount.Fields("sno")
 
 
     Dim desc As String
-    Dim Id  As Double
+    Dim id  As Double
     Dim Amnt As Currency
     Dim Flag As Double
     Dim TotalDed As Currency
@@ -444,10 +444,18 @@ frmProcess.Caption = RsLessAmount.Fields("sno")
     Dim NetPay As Currency
     Dim Others As Currency
     Dim RsDescription As New ADODB.Recordset
-    
-    NetPay = IIf(IsNull(RsLessAmount!NPay), 0, RsLessAmount!NPay)
-    Others = IIf(IsNull(RsLessAmount!Others), 0, RsLessAmount!Others)
     Dim DeductCusor  As New ADODB.Recordset
+    
+    ''''''deduct bonus amount if any
+    Set DeductCusor = oSaccoMaster.GetRecordset("SELECT isnull(sum(Amount),0) as Amount from d_Supplier_Deduc where SNo='" & RsLessAmount!sno & "' and Description='Others' and (Date_Deduc between '" & Startdate & "' and '" & Enddate & "') and Remarks like'%bonus%' and Amount <0 ")
+    
+    
+    
+    NetPay = IIf(IsNull(RsLessAmount!NPay), 0, RsLessAmount!NPay) - DeductCusor!amount
+    Others = IIf(IsNull(RsLessAmount!Others), 0, RsLessAmount!Others)
+  
+    
+    
      'insert the current next month
     oSaccoMaster.ExecuteThis ("SET DATEFORMAT DMY INSERT INTO d_Supplier_Deduc (SNo, Date_Deduc,[Description],Amount,StartDate,enddate, AuditID,Remarks) values ('" & RsLessAmount!sno & "', '" & Startdate & "','Others',('" & NetPay & "'),'" & Startdate & "','" & Enddate & "','" & User & "','" & UCase(Format(Startdate, "MMMM YYYY")) & "'+' Arrears CF')")
      'insert next month
@@ -501,7 +509,26 @@ Loop
 
 oSaccoMaster.ExecuteThis ("DELETE FROM D_Supplier_Deduc WHERE  [Description]='' AND Amount=0")
 
+'*************** Brought forwards and supplier didnt supplier milk this month
+ Dim RsTotalDed  As New ADODB.Recordset
+Set RsTotalDed = oSaccoMaster.GetRecordset("set dateformat dmy select distinct sno, isnull(sum(Amount),0) as Amount from d_supplier_deduc  where (Date_Deduc  BETWEEN '" & Startdate & "'  AND '" & Enddate & "') " _
+    & " and Amount<>0 and sno not in  (SELECT sno   From d_Payroll where endofperiod = '" & Enddate & "') GROUP BY sno,Amount  order by sno")
+ With RsTotalDed
+     While Not RsTotalDed.EOF
+      frmProcess.Caption = !sno
 
+        NetPay = IIf(IsNull(.Fields(1)), 0, .Fields(1))
+        If NetPay < 0 Then NetPay = NetPay * -1
+             'insert the current next month
+            oSaccoMaster.ExecuteThis ("SET DATEFORMAT DMY INSERT INTO d_Supplier_Deduc (SNo, Date_Deduc,[Description],Amount,StartDate,enddate, AuditID,Remarks) values ('" & !sno & "', '" & Startdate & "','Others',('" & NetPay * -1 & "'),'" & Startdate & "','" & Enddate & "','" & User & "','" & UCase(Format(Startdate, "MMMM YYYY")) & "'+' Arrears CF')")
+             'insert next month
+            oSaccoMaster.ExecuteThis ("SET DATEFORMAT DMY INSERT INTO d_Supplier_Deduc (SNo, Date_Deduc,[Description],Amount,StartDate,enddate, AuditID,Remarks) values ('" & !sno & "', '" & Startdate1 & "','Others',('" & NetPay & "'),'" & Startdate1 & "','" & Enddate1 & "','" & User & "','" & UCase(Format(Startdate, "MMMM YYYY")) & "'+' Arrears')")
+             'update payroll
+            'oSaccoMaster.ExecuteThis ("SET DATEFORMAT DMY UPDATE d_Payroll SET NPay=0,Others= Others -('" & NetPay * -1 & "'),TDeductions=TDeductions -('" & NetPay * -1 & "') WHERE SNo='" & !sno & "' AND endofperiod = '" & Enddate & "'")
+                
+        .MoveNext
+     Wend
+ End With
 
 '//end of procedure
 
@@ -652,6 +679,35 @@ frmProcess.Caption = rs.Fields(0)
 rs.MoveNext
 Wend
 
+'*************** Brought forwards and Transporter didnt supplier milk this month
+Dim RsTotalDed  As New ADODB.Recordset
+Set RsTotalDed = oSaccoMaster.GetRecordset("set dateformat dmy select distinct transcode,isnull(sum(Amount),0) as Amount from d_Transport_Deduc  where (TDate_Deduc  BETWEEN '" & Startdate & "'  AND '" & Enddate & "') " _
+    & " and Amount<>0 and  transcode not in  (SELECT code   From d_TransportersPayRoll where endperiod = '" & Enddate & "') group by transcode,Amount order by transcode")
+ With RsTotalDed
+     While Not RsTotalDed.EOF
+        frmProcess.Caption = !TransCode
+        NetPay = IIf(IsNull(.Fields(1)), 0, .Fields(1))
+        If NetPay < 0 Then NetPay = NetPay * -1
+        
+           'insert the current next month
+            sql = "INSERT INTO d_Transport_Deduc (transcode, tdate_deduc,[Description],Amount,StartDate,enddate, AuditID,remarks) values "
+            sql = sql & "('" & !TransCode & "', '" & Startdate & "','Others','" & NetPay * -1 & "','" & Startdate & "','" & Enddate & "','" & User & "','" & UCase(Format(Startdate, "MMMM YYYY")) & "'+' Arrears CF')" '
+            oSaccoMaster.ExecuteThis (sql)
+            
+            'insert next month
+             
+            sql = "INSERT INTO d_Transport_Deduc (transcode, tdate_deduc,[Description],Amount,StartDate,enddate, AuditID,remarks) values "
+            sql = sql & "('" & !TransCode & "', '" & Startdate1 & "','Others','" & NetPay & "','" & Startdate1 & "','" & Enddate1 & "','" & User & "','" & UCase(Format(Startdate, "MMMM YYYY")) & "'+' Arrears')"  '
+            oSaccoMaster.ExecuteThis (sql)
+            
+            'update payroll
+            'oSaccoMaster.ExecuteThis ("SET DATEFORMAT DMY UPDATE d_TransportersPayRoll SET NetPay=0,Others= Others -('" & NetPay * -1 & "'),Totaldeductions= Totaldeductions-('" & NetPay * -1 & "') WHERE code='" & !TransCode & "' AND '" & Enddate & "' = '" & Enddate & "'")
+           
+        .MoveNext
+     Wend
+ End With
+
+
 MsgBox "Records saved successful!"
 End Sub
 
@@ -662,12 +718,12 @@ Set rs = oSaccoMaster.GetRecordset("SELECT     SNo, AccNo, Bcode, BBranch  FROM 
 While Not rs.EOF
 DoEvents
 
-Set rst = oSaccoMaster.GetRecordset("SELECT     sno,accno,bank,branch,idno  FROM         Sheet11 where sno=" & rs.Fields(0) & "")
-If Not rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset("SELECT     sno,accno,bank,branch,idno  FROM         Sheet11 where sno=" & rs.Fields(0) & "")
+If Not Rst.EOF Then
 
-If Trim(rs.Fields(1)) <> Trim(rst.Fields(1)) Then
+If Trim(rs.Fields(1)) <> Trim(Rst.Fields(1)) Then
 sql = ""
-sql = "update d_suppliers set ACCNO='" & rst.Fields(1) & "',BCODE='" & rst.Fields(2) & "',BBRANCH='" & rst.Fields(3) & "',IDNO='" & rst.Fields(4) & "' where sno=" & rs.Fields(0) & ""
+sql = "update d_suppliers set ACCNO='" & Rst.Fields(1) & "',BCODE='" & Rst.Fields(2) & "',BBRANCH='" & Rst.Fields(3) & "',IDNO='" & Rst.Fields(4) & "' where sno=" & rs.Fields(0) & ""
 oSaccoMaster.ExecuteThis (sql)
 End If
 End If
@@ -791,8 +847,8 @@ remark = Trim(rshast1.Fields("remarks"))
 amt = rshast1.Fields("amount")
 sql = ""
 sql = "select description,remarks from d_supplier_deduc where sno='" & sno & "' and description ='SHARES' and remarks='" & remark & "' and month(date_deduc)=" & month(Enddate) & " and year(date_deduc)=" & year(Enddate) & ""
-Set rst = oSaccoMaster.GetRecordset(sql)
-        If rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset(sql)
+        If Rst.EOF Then
         frmProcess.Caption = sno
         sql = "SET dateformat dmy SELECT     SUM(QSupplied) AS QNTY, SUM(QSupplied * (PPU)) AS GrossPay From d_Milkintake " _
         & " WHERE     (TransDate BETWEEN '" & Startdate & "'  AND '" & Enddate & "' AND SNo ='" & sno & "')"
@@ -847,10 +903,10 @@ Wend
 sql = ""
 
 sql = "set dateformat dmy SELECT     distinct sno  FROM   d_milkintake where month(transdate)=" & month(Enddate) & " and year(transdate)=" & year(Enddate) & " ORDER BY sno"
-Set rst = oSaccoMaster.GetRecordset(sql)
-While Not rst.EOF
+Set Rst = oSaccoMaster.GetRecordset(sql)
+While Not Rst.EOF
 DoEvents
-    sno = rst.Fields("sno")
+    sno = Rst.Fields("sno")
     '********CHECK SHARE AMOUNT********'
     'If sno = 28 Then
     'MsgBox "here"
@@ -914,7 +970,7 @@ DoEvents
     oSaccoMaster.ExecuteThis (sql)
        
         amt = 0
-    rst.MoveNext
+    Rst.MoveNext
 Wend
 
 '********************END SHARES***********************'
@@ -929,8 +985,8 @@ remark = Trim(rshast3.Fields("remarks"))
 amt = rshast3.Fields("amount")
 sql = ""
 sql = "select description,remarks from d_supplier_deduc where sno='" & sno & "' and description ='Agrovet' and remarks='" & remark & "' and month(date_deduc)=" & month(Enddate) & " and year(date_deduc)=" & year(Enddate) & ""
-Set rst = oSaccoMaster.GetRecordset(sql)
-        If rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset(sql)
+        If Rst.EOF Then
         frmProcess.Caption = sno
             If amt > 0 Then
             sql = "d_sp_SupplierDeduct " & sno & ",'" & Enddate & "','Agrovet'," & amt & ",'" & Startdate & "','" & Enddate & "'," & year(Enddate) & ",'" & User & "','" & remark & "',''"
@@ -954,8 +1010,8 @@ remark = Trim(rshast4.Fields("description"))
 amt = rshast4.Fields("amount")
 sql = ""
 sql = "select description,remarks from d_Transport_Deduc where TransCode='" & TransCode & "' and description ='Agrovet' and remarks='" & remark & "' and month(tdate_deduc)=" & month(Enddate) & " and year(tdate_deduc)=" & year(Enddate) & ""
-Set rst = oSaccoMaster.GetRecordset(sql)
-        If rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset(sql)
+        If Rst.EOF Then
         frmProcess.Caption = TransCode
             If amt > 0 Then
             sql = "d_sp_TransDeduct " & TransCode & ",'" & Enddate & "','Agrovet'," & amt & ",'" & Startdate & "','" & Enddate & "','" & User & "'"
@@ -1079,9 +1135,9 @@ With rs
             variance = 0
             
            Dim rsdeduction As New Recordset
-'             If sno = "70" Then
-'           MsgBox "here"
-'           End If
+'             If sno = "248" Then
+'                MsgBox "here"
+'             End If
          
           sql = " set dateformat dmy SELECT  [Description], SUM(Amount) AS Amount " _
           & "From d_Supplier_deduc WHERE  (startDate >= '" & Startdate & "' AND EndDate <= '" & Enddate & "') AND SNo='" & sno & "'" _
@@ -1149,20 +1205,57 @@ With rs
     End If
 End With
 
+'*************** Brought forwards and supplier didnt supplier milk this month
+ Dim RsTotalDed  As New ADODB.Recordset
+Set RsTotalDed = oSaccoMaster.GetRecordset("set dateformat dmy select distinct sno, isnull(sum(Amount),0) as Amount from d_supplier_deduc  where (Date_Deduc  BETWEEN '" & Startdate & "'  AND '" & Enddate & "') " _
+    & " and Amount<>0 and sno not in  (SELECT sno   From d_Payroll where endofperiod = '" & Enddate & "') GROUP BY sno,Amount  order by sno")
+ With RsTotalDed
+     While Not RsTotalDed.EOF
+      frmProcess.Caption = !sno
+        Dim NetPay As Double
+        NetPay = IIf(IsNull(.Fields(1)), 0, .Fields(1))
+        
+            sql = "select sno from d_payroll where mmonth=" & month(Enddate) & " and yyear=" & year(Enddate) & " and sno='" & !sno & "'"
+            Set Rst = oSaccoMaster.GetRecordset(sql)
+            If Rst.EOF Then
+                sql = ""
+                sql = "insert into d_Payroll (SNo,EndofPeriod,auditid ) "
+                sql = sql & " values ('" & !sno & "','" & Enddate & "','" & User & "' )"
+                oSaccoMaster.ExecuteThis (sql)
+            End If
+        
+            'update payroll
+            sql = "SET DATEFORMAT DMY UPDATE    d_Payroll " _
+                     & " SET  Transport = 0, Agrovet = 0, AI = 0, TMShares = 0, FSA = 0, HShares =0, Advance = 0, " _
+                                          & " Others = '" & NetPay & "', TDeductions ='" & NetPay & "', NPay = '" & NetPay * -1 & "',KgsSupplied=0,GPay=0 ,TCHP=0,CBO=0 " _
+                    & "Where sno = '" & !sno & "' And EndofPeriod =  '" & Enddate & "'"
+            oSaccoMaster.GetRecordset (sql)
+        
+                
+        .MoveNext
+     Wend
+ End With
+
+
+
+
+
+
+
 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ProgressBar1.value = 50
 oSaccoMaster.ExecuteThis ("set dateformat dmy UPDATE d_Payroll SET Transport=0,TDeductions=(TDeductions -Transport),NPay=(NPay + Transport) WHERE Endofperiod='" & Enddate & "'")
 oSaccoMaster.ExecuteThis ("set dateformat dmy     UPDATE    d_supplier_deduc   SET  amount=0 where [Description] = 'Transport'and  EndDate ='" & Enddate & "'")
 'Update transporters
 'd_sp_TransUpdate StartDate varchar(10),'" & Enddate & "' varchar(10),User varchar(35) AS
-Set rst = oSaccoMaster.GetRecordset("select transcode from d_transporters  order by transcode asc")
-While Not rst.EOF
+Set Rst = oSaccoMaster.GetRecordset("select transcode from d_transporters  order by transcode asc")
+While Not Rst.EOF
 DoEvents
-frmProcess.Caption = rst.Fields(0)
-oSaccoMaster.ExecuteThis ("d_sp_TransUpdate '" & Startdate & "','" & Enddate & "','" & User & "','" & Trim(rst.Fields(0)) & "'")
-rst.MoveNext
+frmProcess.Caption = Rst.Fields(0)
+oSaccoMaster.ExecuteThis ("d_sp_TransUpdate '" & Startdate & "','" & Enddate & "','" & User & "','" & Trim(Rst.Fields(0)) & "'")
+Rst.MoveNext
 Wend
-Set rst = Nothing
+Set Rst = Nothing
 ProgressBar1.value = 70
 'oSaccoMaster.ExecuteThis ("delete from  d_TransportersPayroll WHERE EndPeriod ='" & Enddate & "'")
 
@@ -1178,7 +1271,7 @@ oSaccoMaster.ExecuteThis (sql)
 
 Dim tcode As String, Period As Date, rate As Currency, amount As Currency, D As Integer, samson As Integer, NPay As Double
 D = Days_In_Month(month(Enddate), year(Enddate))
-sql = "SELECT     TransCode, Active, isfrate, rate  FROM         d_Transporters  WHERE     (isfrate = '1') AND (Active = 1)"
+sql = "SELECT     TransCode, Active, isfrate, rate  FROM  d_Transporters  WHERE     (isfrate = '1') AND (Active = 1)"
 Set rs = oSaccoMaster.GetRecordset(sql)
 While Not rs.EOF
 DoEvents
@@ -1188,7 +1281,7 @@ samson = Days_In_Month(month(dtpProcess), month(dtpProcess))
 amount = rate * samson
 '//get total deduction for transporter
 Dim rstt As New ADODB.Recordset, tot As Double
-Set rstt = oSaccoMaster.GetRecordset("SET              dateformat dmy  SELECT     Totaldeductions    FROM         d_TransportersPayRoll  WHERE     (Code = '" & tcode & "') AND ('" & Enddate & "' = '" & dtpProcess & "')")
+Set rstt = oSaccoMaster.GetRecordset("SET dateformat dmy  SELECT     Totaldeductions    FROM         d_TransportersPayRoll  WHERE     (Code = '" & tcode & "') AND ('" & Enddate & "' = '" & dtpProcess & "')")
 If Not rstt.EOF Then
 tot = IIf(IsNull(rstt.Fields(0)), 0, rstt.Fields(0))
 Else
@@ -1199,8 +1292,8 @@ End If
 NPay = amount - tot
 sql = ""
 sql = "SELECT     Trans_code, Period, rate, days, Amount, auditid, auditdatetime From d_trans_frate where period='" & dtpProcess & "' and trans_code='" & tcode & "'"
-Set rst = oSaccoMaster.GetRecordset(sql)
-If rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset(sql)
+If Rst.EOF Then
 sql = ""
 sql = "set dateformat dmy INSERT INTO d_trans_frate"
 sql = sql & " (Trans_code, Period, rate, days, Amount, auditid, auditdatetime,total)"
@@ -1223,6 +1316,31 @@ End If
 
 rs.MoveNext
 Wend
+
+'*************** Brought forwards and Transporter didnt supplier milk this month
+'Dim RsTotalDed  As New ADODB.Recordset
+'Dim GPay As Double
+Dim qnty As Double
+Dim Amnt As Double
+Dim subsidy As Double
+Set RsTotalDed = oSaccoMaster.GetRecordset("set dateformat dmy select distinct transcode,isnull(sum(Amount),0) as Amount from d_Transport_Deduc  where (TDate_Deduc  BETWEEN '" & Startdate & "'  AND '" & Enddate & "') " _
+    & " and Amount<>0 and  transcode not in  (SELECT code   From d_TransportersPayRoll where endperiod = '" & Enddate & "') group by transcode,Amount order by transcode")
+ With RsTotalDed
+     While Not RsTotalDed.EOF
+        frmProcess.Caption = !TransCode
+        NetPay = IIf(IsNull(.Fields(1)), 0, .Fields(1))
+        GPay = 0
+        qnty = 0
+        Amnt = 0
+        subsidy = 0
+        'update payroll
+        oSaccoMaster.ExecuteThis ("exec d_sp_UpdateTransPay '" & !TransCode & "', '" & qnty & "'," & Amnt & "," & subsidy & "," & GPay & ", '" & Enddate & "','" & User & "'")
+        oSaccoMaster.ExecuteThis ("SET DATEFORMAT DMY UPDATE d_TransportersPayRoll SET frate=1,grosspay=0,netpay='" & NetPay * -1 & "',Others= '" & NetPay & "',Totaldeductions= '" & NetPay & "' WHERE code='" & !TransCode & "' AND '" & Enddate & "' = '" & Enddate & "'")
+           
+        .MoveNext
+     Wend
+ End With
+'*************** End
 
 '//do the subsidy for self farmers
     If chksubsidyprev = vbChecked Then
@@ -1394,8 +1512,8 @@ DoEvents
 sno = rs.Fields(0)
 
 sql = "select sno from d_payroll where mmonth=" & month(dtpProcess) & " and yyear=" & year(dtpProcess) & " and sno=" & sno & " order by sno"
-Set rst = oSaccoMaster.GetRecordset(sql)
-    If rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset(sql)
+    If Rst.EOF Then
         sql = ""
         sql = "insert into d_Payroll (SNo,EndofPeriod,auditid ) "
         sql = sql & " values (" & sno & ",'" & dtpProcess & "','" & User & "' )"
@@ -1468,85 +1586,85 @@ ErrorHandler:
 End Sub
 
 Private Sub Command2_Click()
-Startdate = DateSerial(year(dtpProcess), month(dtpProcess), 1)
-Enddate = DateSerial(year(dtpProcess), month(dtpProcess) + 1, 1 - 1)
-Dim sno As String, speriod As Date, eperiod As Date
-Dim Others As String, Remarks As String, rate As Double, Rated As Integer
-Dim deduction As String
-Dim Stopped As Integer
-sql = ""
-sql = "set dateformat dmy select distinct sno from d_milkintake where transdate<='" & Enddate & "' and transdate>='" & Startdate & "'  order by sno"
-Set rs = oSaccoMaster.GetRecordset(sql)
-While Not rs.EOF
-DoEvents
-sno = rs.Fields(0)
-
-sql = "select * from d_PreSets where  sno=" & sno & " order by Deduction"
-Set rst = oSaccoMaster.GetRecordset(sql)
-    If rst.EOF Then
-    'SELECT     SNo, Deduction, Remark, StartDate, Rate, Stopped, Auditdatetime, AuditId, Rated
-'From d_PreSets
-'//OPERATIONS ON OTHERS
-        Stopped = 0
-        'sno = Rst.Fields("sno")
-'        deduction = "Others"
-'        Remarks = "OPERATIONS"
-        Rated = 1
-        'rate = 1.7
-        Dim rst1 As New ADODB.Recordset
-'        sql = "select sno from d_PreSets where  sno=" & sno & " and deduction='Others' and remark='OPERATIONS' order by Deduction"
-'        Set rst1 = oSaccoMaster.GetRecordset(sql)
-'        If rst1.EOF Then
+'Startdate = DateSerial(year(dtpProcess), month(dtpProcess), 1)
+'Enddate = DateSerial(year(dtpProcess), month(dtpProcess) + 1, 1 - 1)
+'Dim sno As String, speriod As Date, eperiod As Date
+'Dim Others As String, Remarks As String, rate As Double, Rated As Integer
+'Dim deduction As String
+'Dim Stopped As Integer
+'sql = ""
+'sql = "set dateformat dmy select distinct sno from d_milkintake where transdate<='" & Enddate & "' and transdate>='" & Startdate & "'  order by sno"
+'Set rs = oSaccoMaster.GetRecordset(sql)
+'While Not rs.EOF
+'DoEvents
+'sno = rs.Fields(0)
+'
+'sql = "select * from d_PreSets where  sno=" & sno & " order by Deduction"
+'Set Rst = oSaccoMaster.GetRecordset(sql)
+'    If Rst.EOF Then
+'    'SELECT     SNo, Deduction, Remark, StartDate, Rate, Stopped, Auditdatetime, AuditId, Rated
+''From d_PreSets
+''//OPERATIONS ON OTHERS
+'        Stopped = 0
+'        'sno = Rst.Fields("sno")
+''        deduction = "Others"
+''        Remarks = "OPERATIONS"
+'        Rated = 1
+'        'rate = 1.7
+'        Dim Rst1 As New ADODB.Recordset
+''        sql = "select sno from d_PreSets where  sno=" & sno & " and deduction='Others' and remark='OPERATIONS' order by Deduction"
+''        Set rst1 = oSaccoMaster.GetRecordset(sql)
+''        If rst1.EOF Then
+''            sql = ""
+''            sql = "set dateformat dmy insert into d_PreSets (SNo, Deduction, Remark, StartDate, Rate, Stopped, Auditdatetime, AuditId, Rated) "
+''            sql = sql & " values (" & sno & ", '" & deduction & "','" & Remarks & "', '" & Startdate & "', " & rate & ", " & Stopped & ", '" & Get_Server_Date & "', '" & User & "', " & Rated & ")"
+''            oSaccoMaster.ExecuteThis (sql)
+''        End If
+'
+'        'HSARES
+'        Stopped = 0
+''        deduction = "HShares"
+''        Remarks = ""
+'        Rated = 1
+'        'rate = 0.3
+'
+'        sql = "select sno from d_PreSets where sno=" & sno & " and deduction='HShares' order by Deduction"
+'        Set Rst1 = oSaccoMaster.GetRecordset(sql)
+'        If Rst1.EOF Then
 '            sql = ""
 '            sql = "set dateformat dmy insert into d_PreSets (SNo, Deduction, Remark, StartDate, Rate, Stopped, Auditdatetime, AuditId, Rated) "
 '            sql = sql & " values (" & sno & ", '" & deduction & "','" & Remarks & "', '" & Startdate & "', " & rate & ", " & Stopped & ", '" & Get_Server_Date & "', '" & User & "', " & Rated & ")"
 '            oSaccoMaster.ExecuteThis (sql)
 '        End If
-
-        'HSARES
-        Stopped = 0
-'        deduction = "HShares"
+'
+'
+'    End If
+'    '//cbo fees
+'
+''            sql = "select description from d_supplier_standingorder where sno='" & sno & "' and description ='CBO'"
+''            Set rst = oSaccoMaster.GetRecordset(sql)
+''            If rst.EOF Then
+''            '//Update deductions
+''                Set cn = New ADODB.Connection
+''                sql = "set dateformat dmy INSERT INTO d_supplier_standingorder"
+''                sql = sql & "           (SNo, Date_Deduc, Description, Amount, MaxAmount, Period, StartDate, EndDate, auditid,  yyear, Remarks)"
+''                sql = sql & "  VALUES     (" & sno & ",'" & Startdate & "','CBO',50,0,'" & Format(Startdate, "mmm-YYYY") & "','" & Startdate & "','31/05/2015','" & User & "'," & year(Enddate) & ",'" & Remarks & "')"
+''                oSaccoMaster.ExecuteThis (sql)
+'''
+'''
+'''
+''            End If
+'''
+''
+'    Stopped = 0
+'        deduction = ""
 '        Remarks = ""
-        Rated = 1
-        'rate = 0.3
-
-        sql = "select sno from d_PreSets where sno=" & sno & " and deduction='HShares' order by Deduction"
-        Set rst1 = oSaccoMaster.GetRecordset(sql)
-        If rst1.EOF Then
-            sql = ""
-            sql = "set dateformat dmy insert into d_PreSets (SNo, Deduction, Remark, StartDate, Rate, Stopped, Auditdatetime, AuditId, Rated) "
-            sql = sql & " values (" & sno & ", '" & deduction & "','" & Remarks & "', '" & Startdate & "', " & rate & ", " & Stopped & ", '" & Get_Server_Date & "', '" & User & "', " & Rated & ")"
-            oSaccoMaster.ExecuteThis (sql)
-        End If
-
-
-    End If
-    '//cbo fees
-
-'            sql = "select description from d_supplier_standingorder where sno='" & sno & "' and description ='CBO'"
-'            Set rst = oSaccoMaster.GetRecordset(sql)
-'            If rst.EOF Then
-'            '//Update deductions
-'                Set cn = New ADODB.Connection
-'                sql = "set dateformat dmy INSERT INTO d_supplier_standingorder"
-'                sql = sql & "           (SNo, Date_Deduc, Description, Amount, MaxAmount, Period, StartDate, EndDate, auditid,  yyear, Remarks)"
-'                sql = sql & "  VALUES     (" & sno & ",'" & Startdate & "','CBO',50,0,'" & Format(Startdate, "mmm-YYYY") & "','" & Startdate & "','31/05/2015','" & User & "'," & year(Enddate) & ",'" & Remarks & "')"
-'                oSaccoMaster.ExecuteThis (sql)
+'        Rated = 1
+'        rate = 0
 ''
-''
-''
-'            End If
-''
-'
-    Stopped = 0
-        deduction = ""
-        Remarks = ""
-        Rated = 1
-        rate = 0
-'
-    frmProcess.Caption = sno
-  rs.MoveNext
-Wend
+'    frmProcess.Caption = sno
+'  rs.MoveNext
+'Wend
 
 End Sub
 
@@ -1579,18 +1697,20 @@ Dim tcode As String
 Dim Amnt As Double
 Dim subsidy As Double
 'tcode = "T20"
-Set rst = oSaccoMaster.GetRecordset(" SELECT SUM(dbo.d_TransDetailed.qnty) AS QNTY, dbo.d_TransDetailed.Trans_Code AS Code, SUM(dbo.d_TransDetailed.Amount) AS Amount,SUM(d_TransDetailed.Subsidy) As Subsidy From d_TransDetailed WHERE     EndPeriod = '" & Enddate & "'  GROUP BY d_TransDetailed.Trans_Code")
-While Not rst.EOF
+Set Rst = oSaccoMaster.GetRecordset(" SELECT SUM(dbo.d_TransDetailed.qnty) AS QNTY, dbo.d_TransDetailed.Trans_Code AS Code, SUM(dbo.d_TransDetailed.Amount) AS Amount,SUM(d_TransDetailed.Subsidy) As Subsidy From d_TransDetailed WHERE     EndPeriod = '" & Enddate & "'  GROUP BY d_TransDetailed.Trans_Code")
+While Not Rst.EOF
 'TCode = "T308"
     DoEvents
-    tcode = rst.Fields("code")
+    tcode = Rst.Fields("code")
     frmProcess.Caption = tcode
     'If Trim$(tcode) = "T20" Then MsgBox "HERE"
-    subsidy = IIf(IsNull(rst.Fields("subsidy")), 0, rst.Fields("subsidy"))
-    Amnt = IIf(IsNull(rst.Fields("amount")), 0, rst.Fields("amount"))
+    qnty = IIf(IsNull(Rst.Fields("qnty")), 0, Rst.Fields("qnty"))
+    subsidy = IIf(IsNull(Rst.Fields("subsidy")), 0, Rst.Fields("subsidy"))
+    subsidy = qnty * 0.5
+    Amnt = IIf(IsNull(Rst.Fields("amount")), 0, Rst.Fields("amount"))
     GPay = IIf(IsNull(Amnt + subsidy), 0, (Amnt + subsidy))
-    qnty = IIf(IsNull(rst.Fields("qnty")), 0, rst.Fields("qnty"))
-    tcode = IIf(IsNull(rst.Fields("Code")), 0, rst.Fields("Code"))
+    
+    tcode = IIf(IsNull(Rst.Fields("Code")), 0, Rst.Fields("Code"))
     
     oSaccoMaster.ExecuteThis ("exec d_sp_UpdateTransPay '" & tcode & "', '" & qnty & "'," & Amnt & "," & subsidy & "," & GPay & ", '" & Enddate & "','" & User & "'")
     
@@ -1665,7 +1785,7 @@ Dim deduction As Double
         
      oSaccoMaster.ExecuteThis ("exec d_sp_UpdateTransDed  '" & tcode & "',' " & Enddate & "'," & TotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & "," & variance & "," & MILKREJECTS & "")
 
-    rst.MoveNext
+    Rst.MoveNext
     Wend
 
 
@@ -1682,10 +1802,10 @@ Dim ptrans As String
 Dim tt As String
 Dim rate As Integer
 
-Set rst = oSaccoMaster.GetRecordset("select transcode,ptransporter,tt from d_transporters where tt=1")
-While Not rst.EOF
+Set Rst = oSaccoMaster.GetRecordset("select transcode,ptransporter,tt from d_transporters where tt=1")
+While Not Rst.EOF
 DoEvents
-rst.MoveNext
+Rst.MoveNext
 Wend
 
 2
@@ -1697,29 +1817,18 @@ End Sub
 
 Public Sub updatepayroll_deduc()
 
-  
-
-Set rst = oSaccoMaster.GetRecordset("select sno,sum(amount)as amount from d_transdetailed where endperiod='" & dtpProcess & "' and amount>0 group by sno order by sno asc")
-While Not rst.EOF
+Set Rst = oSaccoMaster.GetRecordset("select sno,sum(amount)as amount from d_transdetailed where endperiod='" & dtpProcess & "' and amount>0 group by sno order by sno asc")
+While Not Rst.EOF
 DoEvents
-frmProcess.Caption = rst.Fields("sno")
+frmProcess.Caption = Rst.Fields("sno")
 'If Rst.Fields("sno") = "432" Then MsgBox "here"
     
-    oSaccoMaster.ExecuteThis ("set dateformat dmy UPDATE d_Payroll SET Transport=" & rst.Fields("amount") & " WHERE SNo='" & rst.Fields("sno") & "' AND Endofperiod='" & dtpProcess & "' ")
-    oSaccoMaster.ExecuteThis ("set dateformat dmy update d_payroll set TDeductions=TDeductions +" & rst.Fields("amount") & ",NPay=gpay - tdeductions  WHERE SNo='" & rst.Fields("sno") & "' AND Endofperiod='" & dtpProcess & "'  ")
-    oSaccoMaster.ExecuteThis ("set dateformat dmy update d_payroll set NPay=gpay - tdeductions  WHERE SNo='" & rst.Fields("sno") & "' AND Endofperiod='" & dtpProcess & "'  ")
-    oSaccoMaster.ExecuteThis ("set dateformat dmy   insert into  d_supplier_deduc  (sno,Date_Deduc,[Description],Amount,StartDate,EndDate,auditid) values('" & rst.Fields("sno") & "','" & Startdate & "','Transport'," & rst.Fields("amount") & ",'" & Startdate & "','" & Enddate & "' ,'" & User & "')  ")
-    rst.MoveNext
+    oSaccoMaster.ExecuteThis ("set dateformat dmy UPDATE d_Payroll SET Transport=" & Rst.Fields("amount") & " WHERE SNo='" & Rst.Fields("sno") & "' AND Endofperiod='" & dtpProcess & "' ")
+    oSaccoMaster.ExecuteThis ("set dateformat dmy update d_payroll set TDeductions=TDeductions +" & Rst.Fields("amount") & ",NPay=gpay - tdeductions  WHERE SNo='" & Rst.Fields("sno") & "' AND Endofperiod='" & dtpProcess & "'  ")
+    oSaccoMaster.ExecuteThis ("set dateformat dmy update d_payroll set NPay=gpay - TDeductions  WHERE SNo='" & Rst.Fields("sno") & "' AND Endofperiod='" & dtpProcess & "'  ")
+    oSaccoMaster.ExecuteThis ("set dateformat dmy   insert into  d_supplier_deduc  (sno,Date_Deduc,[Description],Amount,StartDate,EndDate,auditid) values('" & Rst.Fields("sno") & "','" & Startdate & "','Transport'," & Rst.Fields("amount") & ",'" & Startdate & "','" & Enddate & "' ,'" & User & "')  ")
+    Rst.MoveNext
 Wend
-
-'Set Rst1 = oSaccoMaster.GetRecordset("set dateformat dmy select code from d_transporterspayroll where endperiod='" & dtpProcess & "' order by code asc")
-'While Not Rst1.EOF
-'DoEvents
-'    frmProcess.Caption = Rst1.Fields(0)
-'    If Trim$(Rst1.Fields(0)) = "T008" Then MsgBox ""
-'    oSaccoMaster.ExecuteThis ("update d_transporterspayroll set netpay=grosspay-totaldeductions where code='" & Rst1.Fields(0) & "'")
-'Rst1.MoveNext
-'Wend
 End Sub
 
 Public Sub Refresh_TranportersPayroll()
@@ -1729,41 +1838,41 @@ Dim month As Integer
 
 oSaccoMaster.ExecuteThis ("delete from d_TransportersPayRoll where  yyear=year('" & dtpProcess & "') and mmonth =month('" & dtpProcess & "')")
 
-Set rst = oSaccoMaster.GetRecordset("set dateformat dmy select distinct Trans_Code from d_Transport where sno in (select sno from d_milkintake where (month(transdate)=month('" & dtpProcess & "')) and (year(transdate)=year('" & dtpProcess & "')))" _
+Set Rst = oSaccoMaster.GetRecordset("set dateformat dmy select distinct Trans_Code from d_Transport where sno in (select sno from d_milkintake where (month(transdate)=month('" & dtpProcess & "')) and (year(transdate)=year('" & dtpProcess & "')))" _
   & "  and Trans_Code not in(select code from d_TransportersPayRoll where yyear=year('" & dtpProcess & "') and mmonth =month('" & dtpProcess & "')) order by Trans_Code asc")
-While Not rst.EOF
+While Not Rst.EOF
 DoEvents
-frmProcess.Caption = rst.Fields("Trans_Code")
+frmProcess.Caption = Rst.Fields("Trans_Code")
 
-    oSaccoMaster.ExecuteThis ("insert into d_TransportersPayRoll (code,EndPeriod) values('" & Trim$(rst.Fields("Trans_Code")) & "','" & dtpProcess & "')")
-rst.MoveNext
+    oSaccoMaster.ExecuteThis ("insert into d_TransportersPayRoll (code,EndPeriod) values('" & Trim$(Rst.Fields("Trans_Code")) & "','" & dtpProcess & "')")
+Rst.MoveNext
 Wend
 End Sub
 Public Sub addomittedentried()
 Dim year As Integer
 Dim month As Integer
 
-Set rst = oSaccoMaster.GetRecordset("set dateformat dmy select distinct sno from d_milkintake where (month(transdate)=month('" & dtpProcess & "')) and (year(transdate)=year('" & dtpProcess & "')) and (sno not in(select sno from d_payroll where yyear=year('" & dtpProcess & "') and mmonth =month('" & dtpProcess & "'))) order by sno asc")
-While Not rst.EOF
+Set Rst = oSaccoMaster.GetRecordset("set dateformat dmy select distinct sno from d_milkintake where (month(transdate)=month('" & dtpProcess & "')) and (year(transdate)=year('" & dtpProcess & "')) and (sno not in(select sno from d_payroll where yyear=year('" & dtpProcess & "') and mmonth =month('" & dtpProcess & "'))) order by sno asc")
+While Not Rst.EOF
 DoEvents
-frmProcess.Caption = rst.Fields("sno")
+frmProcess.Caption = Rst.Fields("sno")
 
-    oSaccoMaster.ExecuteThis ("insert into d_payroll (sno,endofperiod) values('" & rst.Fields("sno") & "','" & dtpProcess & "')")
-rst.MoveNext
+    oSaccoMaster.ExecuteThis ("insert into d_payroll (sno,endofperiod) values('" & Rst.Fields("sno") & "','" & dtpProcess & "')")
+Rst.MoveNext
 Wend
 End Sub
 
 Private Sub Txtcreditedac_Change()
-Set rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & Txtcreditedac & "'")
-If Not rst.EOF Then
-    lblcreditedac = rst.Fields(0)
+Set Rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & Txtcreditedac & "'")
+If Not Rst.EOF Then
+    lblcreditedac = Rst.Fields(0)
 End If
 End Sub
 
 Private Sub Txtdebitedac_Change()
-Set rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & Txtdebitedac & "'")
-If Not rst.EOF Then
-    lbldebitedac = rst.Fields(0)
+Set Rst = oSaccoMaster.GetRecordset("select glaccname from glsetup where accno='" & Txtdebitedac & "'")
+If Not Rst.EOF Then
+    lbldebitedac = Rst.Fields(0)
 End If
 
 

@@ -270,7 +270,7 @@ Begin VB.Form frmSupplierStmtBonus
       _ExtentX        =   2990
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   130809857
+      Format          =   121110529
       CurrentDate     =   40109
    End
    Begin MSComDlg.CommonDialog cdgPrint 
@@ -299,7 +299,7 @@ Begin VB.Form frmSupplierStmtBonus
       _ExtentX        =   2990
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   130809857
+      Format          =   121110529
       CurrentDate     =   40109
    End
    Begin VB.Label Label8 
@@ -445,18 +445,18 @@ End If
 End Sub
 
 Private Sub chprint_Click()
-ports.Clear
-ports = ""
+Ports.Clear
+Ports = ""
 '//If the drivers are installed it won't matter whether the Port is indicated
 ' or not it will just work.
 
 If chprint.value = vbChecked Then
-ports.AddItem "LPT1"
-ports = "LPT1"
-ports.AddItem "LPT2"
-ports.AddItem "LPT3"
-ports.AddItem "LPT4"
-ports.AddItem "LPT5"
+Ports.AddItem "LPT1"
+Ports = "LPT1"
+Ports.AddItem "LPT2"
+Ports.AddItem "LPT3"
+Ports.AddItem "LPT4"
+Ports.AddItem "LPT5"
 Else
 'Share the printer first the use of 127.0.0.1 which is
 'standard IP address for a loopback network connection
@@ -464,18 +464,18 @@ Else
 '
 Dim prnPrinter As Printer
 Dim pr As String
-ports.Clear
+Ports.Clear
 
 For Each prnPrinter In Printers
    If InStr(prnPrinter.DeviceName, "\\") Then
-    ports.AddItem prnPrinter.DeviceName
+    Ports.AddItem prnPrinter.DeviceName
     If InStr(prnPrinter.DeviceName, "G") Then
-    ports.Text = prnPrinter.DeviceName
+    Ports.Text = prnPrinter.DeviceName
     End If
     Else
-    ports.AddItem "\\127.0.0.1\" & prnPrinter.DeviceName
+    Ports.AddItem "\\127.0.0.1\" & prnPrinter.DeviceName
     If InStr(prnPrinter.DeviceName, "G") Then
-    ports.Text = "\\127.0.0.1\" & prnPrinter.DeviceName
+    Ports.Text = "\\127.0.0.1\" & prnPrinter.DeviceName
     End If
     End If
    
@@ -561,11 +561,11 @@ If optAdvanceSlip.value = True Then
 
     Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet " & txtSNo & ",'" & Startdate & "','" & Enddate & "', 0")
     
-    Dim kgs As Double
+    Dim Kgs As Double
     If Not IsNull(rs.Fields(0)) Then
-    kgs = rs.Fields(0)
+    Kgs = rs.Fields(0)
     Else
-    kgs = "0.00"
+    Kgs = "0.00"
     End If
 
     Dim Gross As Double
@@ -595,7 +595,7 @@ If optAdvanceSlip.value = True Then
     Dim Net As Double
     Net = Format((CCur(Gross) - CCur(Ded)), "#,##0.00")
     Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         'ttt = "LPT1" 'LPT1,LPT2....
@@ -630,10 +630,10 @@ End If
 '----d_sp_PrintStmt @SNo bigint,@EndPeriod varchar(10)
 
 If OptNormalStmt.value = True Then
-    Set rst = New ADODB.Recordset
+    Set Rst = New ADODB.Recordset
         sql = "d_sp_PrintStmt " & txtSNo & ",'" & Enddate & "'"
-    Set rst = oSaccoMaster.GetRecordset(sql)
-    If rst.EOF Then
+    Set Rst = oSaccoMaster.GetRecordset(sql)
+    If Rst.EOF Then
         MsgBox "There is no record in the payroll for supplier number " & txtSNo, vbInformation
             txtSNo.SetFocus
         Exit Sub
@@ -641,7 +641,7 @@ If OptNormalStmt.value = True Then
 
 
  'Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         'ttt = "LPT1" 'LPT1,LPT2....
@@ -660,7 +660,7 @@ If OptNormalStmt.value = True Then
     txtFile.WriteLine escAlignLeft
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "SNo :" & txtSNo
-    txtFile.WriteLine "Name :" & rst!NAMES
+    txtFile.WriteLine "Name :" & Rst!NAMES
     txtFile.WriteLine "........................................"
     'startdate = DateSerial(Year(DTPStmts), month(DTPStmts) - 1, 1)
     Set rs = New ADODB.Recordset
@@ -674,48 +674,48 @@ If OptNormalStmt.value = True Then
     
     txtFile.WriteLine "Total Kgs :" & Format(CummulKgs, "#,##0.00" & " Kgs")
     
-    txtFile.WriteLine "Gross Amount               Kshs: " & Format(rst!GPay, "#,##0.00") & ""
-    GPay = Format(rst!GPay, "#,##0.00")
+    txtFile.WriteLine "Gross Amount               Kshs: " & Format(Rst!GPay, "#,##0.00") & ""
+    GPay = Format(Rst!GPay, "#,##0.00")
     txtFile.Write escBoldOn
     txtFile.WriteLine "DEDUCTIONS"
     txtFile.WriteLine "-------------"
     txtFile.Write escBoldOff
-    Set rst = New ADODB.Recordset
+    Set Rst = New ADODB.Recordset
     sql = "d_sp_PrintDeductStmt " & txtSNo & ",'" & Startdate & "','" & Enddate & "'"
-    Set rst = oSaccoMaster.GetRecordset(sql)
+    Set Rst = oSaccoMaster.GetRecordset(sql)
     
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "DATE " & vbTab & "" & vbTab & "AMOUNT" & vbTab & "DESCRIPTION"
     txtFile.WriteLine "........................................"
    ' Dim TotDeduction As Double
     TotDeduction = 0
-    While Not rst.EOF
+    While Not Rst.EOF
         'MsgBox rs!QSupplied
-        txtFile.WriteLine rst!date_deduc & " " & vbTab & " " & Format(rst!amount, "#,##0.00" & vbTab & " " & rst!description & " " & rst!Remarks & " ")
-        TotDeduction = TotDeduction + rst!amount
+        txtFile.WriteLine Rst!Date_Deduc & " " & vbTab & " " & Format(Rst!amount, "#,##0.00" & vbTab & " " & Rst!description & " " & Rst!Remarks & " ")
+        TotDeduction = TotDeduction + Rst!amount
         'txtfile.WriteLine rs!PPU
-         rst.MoveNext
+         Rst.MoveNext
         
         Wend
-    Set rst1 = New ADODB.Recordset
+    Set Rst1 = New ADODB.Recordset
         sql = "d_sp_PrintStmt " & txtSNo & ",'" & Enddate & "'"
-    Set rst1 = oSaccoMaster.GetRecordset(sql)
-    If Not IsNull(rst1!Transport) Then
-              txtFile.WriteLine Enddate & " " & vbTab & " " & Format(rst1!Transport, "#,##0.00" & vbTab & " " & "Transport ")
-              TotDeduction = TotDeduction + rst1!Transport
+    Set Rst1 = oSaccoMaster.GetRecordset(sql)
+    If Not IsNull(Rst1!Transport) Then
+              txtFile.WriteLine Enddate & " " & vbTab & " " & Format(Rst1!Transport, "#,##0.00" & vbTab & " " & "Transport ")
+              TotDeduction = TotDeduction + Rst1!Transport
     End If
-    txtFile.WriteLine "Quality Type: " & Format(IIf(IsNull(rst1!Trader), 0, rst1!Trader), "#,##0.00") & ""
-    txtFile.WriteLine "Quality Bonus Kshs: " & Format(IIf(IsNull(rst1!TCHP), 0, rst1!TCHP), "#,##0.00") & ""
-    txtFile.WriteLine "Can Number: " & Format(IIf(IsNull(rst1!otheraccno), 0, rst1!otheraccno)) & ""
+    txtFile.WriteLine "Quality Type: " & Format(IIf(IsNull(Rst1!Trader), 0, Rst1!Trader), "#,##0.00") & ""
+    txtFile.WriteLine "Quality Bonus Kshs: " & Format(IIf(IsNull(Rst1!TCHP), 0, Rst1!TCHP), "#,##0.00") & ""
+    txtFile.WriteLine "Can Number: " & Format(IIf(IsNull(Rst1!otheraccno), 0, Rst1!otheraccno)) & ""
     txtFile.WriteLine "Total Deductions Kshs: " & Format(TotDeduction, "#,##0.00") & ""
     txtFile.WriteLine "........................................"
-    txtFile.WriteLine "NET PAY                   Kshs :" & Format((GPay - TotDeduction + IIf(IsNull(rst1!TCHP), 0, rst1!TCHP)), "#,##0.00") & ""
+    txtFile.WriteLine "NET PAY                   Kshs :" & Format((GPay - TotDeduction + IIf(IsNull(Rst1!TCHP), 0, Rst1!TCHP)), "#,##0.00") & ""
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "BANK DETAILS"
     txtFile.WriteLine "-------------"
-    txtFile.WriteLine "Bank Name :" & rst!bank & ""
-    txtFile.WriteLine "Bank Branch :" & rst!BBranch
-    txtFile.WriteLine "Account Number :" & rst!accountnumber
+    txtFile.WriteLine "Bank Name :" & Rst!bank & ""
+    txtFile.WriteLine "Bank Branch :" & Rst!BBranch
+    txtFile.WriteLine "Account Number :" & Rst!accountnumber
 '    txtfile.WriteLine "........................................"
 
 '    sql = "d_sp_TransName '" & txtSNo & "'"
@@ -795,11 +795,11 @@ If chkNotepad = vbChecked Then
                         Exit Sub
                         End If
                         
-                        Set rst1 = New ADODB.Recordset
+                        Set Rst1 = New ADODB.Recordset
                         sql = "set dateformat dmy select Name, Bank, Bcode, Branch from d_Bonus where Sno='" & txtSNo & "' and Enddate BETWEEN '" & Startdate & "' AND '" & Enddate & "'"
-                        Set rst1 = oSaccoMaster.GetRecordset(sql)
+                        Set Rst1 = oSaccoMaster.GetRecordset(sql)
                         
-                        txtFile.WriteLine "Name :" & rst1!name
+                        txtFile.WriteLine "Name :" & Rst1!name
                         txtFile.WriteLine "........................................"
                         txtFile.WriteLine "DATE " & vbTab & "" & vbTab & "AMOUNT"
                         txtFile.WriteLine "........................................"
@@ -815,17 +815,17 @@ If chkNotepad = vbChecked Then
                              GPay = 0
                              Dim m As Integer
                              Dim X As String
-                             Dim d As Date
+                             Dim D As Date
                                 m = Format(DateSerial(year(DTPStmts), month(DTPStmts) + 1, 1 - 1), "MM")
-                                d = Startdate
+                                D = Startdate
                                   For I = 1 To m
                                    X = "Mon" + Trim(I)
                                    sql = "set dateformat dmy select " & X & " AS MON from d_Bonus2 where Sno='" & txtSNo & "' and Date BETWEEN '" & Startdate & "' AND '" & Enddate & "'"
                                    Set rs2 = oSaccoMaster.GetRecordset(sql)
                                    'D = Format(DateSerial(Year(D), month(D) + 1, 1 - 1), "MM-YYYY")
-                                    txtFile.WriteLine d & " " & vbTab & " " & Format(rs2!mon, "#,##0.0#")
+                                    txtFile.WriteLine D & " " & vbTab & " " & Format(rs2!mon, "#,##0.0#")
                                     qnty = qnty + rs2!mon
-                                    d = DateSerial(year(d), month(d) + 1, 1)
+                                    D = DateSerial(year(D), month(D) + 1, 1)
                                   Next I
                              
                            ' While Not rs.EOF
@@ -858,9 +858,9 @@ If chkNotepad = vbChecked Then
                         txtFile.WriteLine "-----------------------------------------"
                         txtFile.WriteLine "BANK DETAILS"  'Bank, Bcode, Branch
                         txtFile.WriteLine "-------------"
-                        txtFile.WriteLine "Bank Name :" & rst1!bcode & ""
-                        txtFile.WriteLine "Bank Branch :" & rst1!Branch
-                        txtFile.WriteLine "Account Number :" & rst1!bank
+                        txtFile.WriteLine "Bank Name :" & Rst1!bcode & ""
+                        txtFile.WriteLine "Bank Branch :" & Rst1!Branch
+                        txtFile.WriteLine "Account Number :" & Rst1!bank
                         txtFile.WriteLine "---------------------------------------"
                         txtFile.WriteLine "        Date :" & Format(Get_Server_Date, "dd/mm/yyyy HH:MM:SS AM/PM")
                         txtFile.WriteLine "         " & motto & ""
@@ -872,12 +872,12 @@ If chkNotepad = vbChecked Then
 End If
 '--Print detailed statement
 If OptDetailedStmt.value = True And chkNotepad = vbUnchecked Then
-                     Dim Bonusprice, amountopay, totalkgs, totalamount As Double
+                     Dim Bonusprice, amountopay, totalkgs, Totalamount As Double
                      Bonusprice = 2
                      amountopay = 0
                      totalkgs = 0
-                     totalamount = 0
-                            PORT = ports
+                     Totalamount = 0
+                            PORT = Ports
                             'ttt = "LPT1" 'LPT1
                             ttt = PORT
                       'ttt = "LPT1" 'LPT1,LPT2....
@@ -922,12 +922,12 @@ If OptDetailedStmt.value = True And chkNotepad = vbUnchecked Then
                             Exit Sub
                             End If
                             
-                        Set rst1 = New ADODB.Recordset
+                        Set Rst1 = New ADODB.Recordset
                             sql = "set dateformat dmy select SNo, Names, AccNo, Bcode, BBranch from d_Suppliers where Sno='" & txtSNo & "'"
-                            Set rst1 = oSaccoMaster.GetRecordset(sql)
-                            txtFile.WriteLine "Name :" & rst1!NAMES
+                            Set Rst1 = oSaccoMaster.GetRecordset(sql)
+                            txtFile.WriteLine "Name :" & Rst1!NAMES
                             txtFile.WriteLine "........................................"
-                            txtFile.WriteLine "Month " & vbTab & "Kgs" & vbTab & "Rate" & vbTab & "AMOUNT"
+                            txtFile.WriteLine "Month " & vbTab & "Kgs " & vbTab & " Rate " & vbTab & "  AMOUNT"
                             txtFile.WriteLine "........................................"
                             
                             Dim EEnddate As Date
@@ -945,7 +945,7 @@ If OptDetailedStmt.value = True And chkNotepad = vbUnchecked Then
                             Enddate = DateSerial(year(dateget), month(dateget) + 1, 1 - 1)
                             
                             Set rs = New ADODB.Recordset
-                            sql = "set dateformat dmy select SUM(QSupplied) as QSupplied from d_Milkintake where Sno='" & txtSNo & "' and TransDate BETWEEN '" & Startdate & "' AND '" & Enddate & "'"
+                            sql = "set dateformat dmy select isnull(SUM(QSupplied),0) as QSupplied from d_Milkintake where Sno='" & txtSNo & "' and TransDate BETWEEN '" & Startdate & "' AND '" & Enddate & "'"
                             Set rs = oSaccoMaster.GetRecordset(sql)
                             
                             
@@ -960,7 +960,7 @@ If OptDetailedStmt.value = True And chkNotepad = vbUnchecked Then
                                 txtFile.WriteLine da & " " & vbTab & "" & rs!QSupplied & " " & vbTab & "" & Bonusprice & " " & vbTab & "" & Format(amountopay, "#,##0.0#")
                                 qnty = qnty + rs!QSupplied
                                 totalkgs = totalkgs + qnty
-                                totalamount = totalamount + amountopay
+                                Totalamount = Totalamount + amountopay
                                 
                                 Enddate = Enddate + 1
                                 
@@ -970,13 +970,13 @@ If OptDetailedStmt.value = True And chkNotepad = vbUnchecked Then
                         txtFile.WriteLine "-----------------------------------------"
                         txtFile.WriteLine "Total Kgs                      : " & Format(totalkgs, "#,##0.00") & ""
                         txtFile.WriteLine "Rate Per Kgs              Kshs : " & Format(Bonusprice, "#,##0.00") & ""
-                        txtFile.WriteLine "NET PAY                   Kshs : " & Format(totalamount, "#,##0.00") & ""
+                        txtFile.WriteLine "NET PAY                   Kshs : " & Format(Totalamount, "#,##0.00") & ""
                         txtFile.WriteLine "-----------------------------------------"
                         txtFile.WriteLine "BANK DETAILS"
                         txtFile.WriteLine "-------------"
-                        txtFile.WriteLine "Bank Name :" & rst1!bcode & ""
-                        txtFile.WriteLine "Bank Branch :" & rst1!BBranch
-                        txtFile.WriteLine "Account Number :" & rst1!ACCNO
+                        txtFile.WriteLine "Bank Name :" & Rst1!bcode & ""
+                        txtFile.WriteLine "Bank Branch :" & Rst1!BBranch
+                        txtFile.WriteLine "Account Number :" & Rst1!ACCNO
                         txtFile.WriteLine "---------------------------------------"
                         txtFile.WriteLine "        Date :" & Format(Get_Server_Date, "dd/mm/yyyy HH:MM:SS AM/PM")
                         txtFile.WriteLine "         " & motto & ""
@@ -1118,11 +1118,11 @@ If optAdvanceSlip.value = True Then
 
 Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet " & txtSNo & ",'" & Startdate & "','" & Enddate & "', 0")
 
-Dim kgs As Double
+Dim Kgs As Double
 If Not IsNull(rs.Fields(0)) Then
-kgs = rs.Fields(0)
+Kgs = rs.Fields(0)
 Else
-kgs = "0.00"
+Kgs = "0.00"
 End If
 
 Dim Gross As Double
@@ -1188,10 +1188,10 @@ Dim rsnorm As New ADODB.Recordset, sno1 As Long
 Set rsnorm = oSaccoMaster.GetRecordset("select sno  from d_transport where active=1  order by sno ")
 While Not rsnorm.EOF
 sno1 = IIf(IsNull(rsnorm.Fields(0)), 0, rsnorm.Fields(0))
-    Set rst = New ADODB.Recordset
+    Set Rst = New ADODB.Recordset
         sql = "d_sp_PrintStmt " & sno1 & ",'" & Enddate & "'"
-    Set rst = oSaccoMaster.GetRecordset(sql)
-If rst.EOF Then
+    Set Rst = oSaccoMaster.GetRecordset(sql)
+If Rst.EOF Then
     MsgBox "There is no record in the payroll for supplier number " & sno1, vbInformation
         txtSNo.SetFocus
     Exit Sub
@@ -1215,7 +1215,7 @@ End If
     txtFile.WriteLine escAlignLeft
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "SNo :" & sno1
-    txtFile.WriteLine "Name :" & rst!NAMES
+    txtFile.WriteLine "Name :" & Rst!NAMES
     txtFile.WriteLine "........................................"
     'startdate = DateSerial(Year(DTPStmts), month(DTPStmts) - 1, 1)
     Set rs = New ADODB.Recordset
@@ -1229,28 +1229,28 @@ End If
     
     txtFile.WriteLine "Total Kgs :" & Format(CummulKgs, "#,##0.00" & " Kgs")
     
-    txtFile.WriteLine "Gross Amount               Kshs: " & Format(rst!GPay, "#,##0.00") & ""
+    txtFile.WriteLine "Gross Amount               Kshs: " & Format(Rst!GPay, "#,##0.00") & ""
     txtFile.Write escBoldOn
     txtFile.WriteLine "DEDUCTIONS"
     txtFile.WriteLine "-------------"
     txtFile.Write escBoldOff
-    txtFile.WriteLine "Transport        Kshs: " & Format(rst!Transport, "#,##0.00") & ""
-    txtFile.WriteLine "Agrovet          Kshs: " & Format(rst!agrovet, "#,##0.00") & ""
-    txtFile.WriteLine "TM Shares        Kshs: " & Format(rst!TMShares, "#,##0.00") & ""
-    txtFile.WriteLine "H Shares         Kshs: " & Format(rst!HShares, "#,##0.00") & ""
-    txtFile.WriteLine "Advances         Kshs: " & Format(rst!Advance, "#,##0.00") & ""
-    txtFile.WriteLine "FSA              Kshs: " & Format(rst!FSA, "#,##0.00") & ""
-    txtFile.WriteLine "AI               Kshs: " & Format(rst!AI, "#,##0.00") & ""
-    txtFile.WriteLine "Others           Kshs: " & Format(rst!Others, "#,##0.00") & ""
-    txtFile.WriteLine "Total Deductions Kshs: " & Format(rst!TDeductions, "#,##0.00") & ""
+    txtFile.WriteLine "Transport        Kshs: " & Format(Rst!Transport, "#,##0.00") & ""
+    txtFile.WriteLine "Agrovet          Kshs: " & Format(Rst!agrovet, "#,##0.00") & ""
+    txtFile.WriteLine "TM Shares        Kshs: " & Format(Rst!TMShares, "#,##0.00") & ""
+    txtFile.WriteLine "H Shares         Kshs: " & Format(Rst!HShares, "#,##0.00") & ""
+    txtFile.WriteLine "Advances         Kshs: " & Format(Rst!Advance, "#,##0.00") & ""
+    txtFile.WriteLine "FSA              Kshs: " & Format(Rst!FSA, "#,##0.00") & ""
+    txtFile.WriteLine "AI               Kshs: " & Format(Rst!AI, "#,##0.00") & ""
+    txtFile.WriteLine "Others           Kshs: " & Format(Rst!Others, "#,##0.00") & ""
+    txtFile.WriteLine "Total Deductions Kshs: " & Format(Rst!TDeductions, "#,##0.00") & ""
     txtFile.WriteLine "........................................"
-    txtFile.WriteLine "NET PAY                    Kshs: " & Format(rst!NPay, "#,##0.00") & ""
+    txtFile.WriteLine "NET PAY                    Kshs: " & Format(Rst!NPay, "#,##0.00") & ""
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "BANK DETAILS"
     txtFile.WriteLine "-------------"
-    txtFile.WriteLine "Bank Name :" & rst!bank & ""
-    txtFile.WriteLine "Bank Branch :" & rst!BBranch
-    txtFile.WriteLine "Account Number :" & rst!accountnumber
+    txtFile.WriteLine "Bank Name :" & Rst!bank & ""
+    txtFile.WriteLine "Bank Branch :" & Rst!BBranch
+    txtFile.WriteLine "Account Number :" & Rst!accountnumber
 
     txtFile.WriteLine "---------------------------------------"
     txtFile.WriteLine "        Date :" & Format(Get_Server_Date, "dd/mm/yyyy HH:MM:SS AM/PM")
@@ -1359,29 +1359,29 @@ End If
     txtFile.WriteLine "........................................"
     txtFile.WriteLine escBoldOff
     
-Set rst = New ADODB.Recordset
+Set Rst = New ADODB.Recordset
 sql = "d_sp_PrintDeductStmt " & txtSNo & ",'" & Startdate & "','" & Enddate & "'"
-Set rst = oSaccoMaster.GetRecordset(sql)
+Set Rst = oSaccoMaster.GetRecordset(sql)
     
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "DATE " & vbTab & "" & vbTab & "AMOUNT" & vbTab & "DESCRIPTION"
     txtFile.WriteLine "........................................"
     Dim TotDeduction As Double
     TotDeduction = 0
-    While Not rst.EOF
+    While Not Rst.EOF
         'MsgBox rs!QSupplied
-        txtFile.WriteLine rst!date_deduc & " " & vbTab & " " & Format(rst!amount, "#,##0.00" & vbTab & " " & rst!description & " " & rst!Remarks & " ")
-        TotDeduction = TotDeduction + rst!amount
+        txtFile.WriteLine Rst!Date_Deduc & " " & vbTab & " " & Format(Rst!amount, "#,##0.00" & vbTab & " " & Rst!description & " " & Rst!Remarks & " ")
+        TotDeduction = TotDeduction + Rst!amount
         'txtfile.WriteLine rs!PPU
-         rst.MoveNext
+         Rst.MoveNext
         
         Wend
-    Set rst1 = New ADODB.Recordset
+    Set Rst1 = New ADODB.Recordset
         sql = "d_sp_PrintStmt " & txtSNo & ",'" & Enddate & "'"
-    Set rst1 = oSaccoMaster.GetRecordset(sql)
-    If Not IsNull(rst1!Transport) Then
-              txtFile.WriteLine Enddate & " " & vbTab & " " & Format(rst1!Transport, "#,##0.00" & vbTab & " " & "Transport ")
-              TotDeduction = TotDeduction + rst1!Transport
+    Set Rst1 = oSaccoMaster.GetRecordset(sql)
+    If Not IsNull(Rst1!Transport) Then
+              txtFile.WriteLine Enddate & " " & vbTab & " " & Format(Rst1!Transport, "#,##0.00" & vbTab & " " & "Transport ")
+              TotDeduction = TotDeduction + Rst1!Transport
     End If
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "Total Deductions Kshs: " & Format(TotDeduction, "#,##0.00") & ""
@@ -1390,9 +1390,9 @@ Set rst = oSaccoMaster.GetRecordset(sql)
     txtFile.WriteLine "-----------------------------------------"
     txtFile.WriteLine "BANK DETAILS"
     txtFile.WriteLine "-------------"
-    txtFile.WriteLine "Bank Name :" & rst1!bank & ""
-    txtFile.WriteLine "Bank Branch :" & rst1!BBranch
-    txtFile.WriteLine "Account Number :" & rst1!accountnumber
+    txtFile.WriteLine "Bank Name :" & Rst1!bank & ""
+    txtFile.WriteLine "Bank Branch :" & Rst1!BBranch
+    txtFile.WriteLine "Account Number :" & Rst1!accountnumber
     txtFile.WriteLine "---------------------------------------"
     txtFile.WriteLine "        Date :" & Format(Get_Server_Date, "dd/mm/yyyy HH:MM:SS AM/PM")
     txtFile.WriteLine "         " & motto & ""
@@ -1458,18 +1458,18 @@ End If
 End Sub
 Private Sub branames()
     cbobranch.Clear
-    Set rst = New Recordset
+    Set Rst = New Recordset
     Dim cn As Connection
     Set cn = New ADODB.Connection
     Provider = "MAZIWA"
     'Provider = cnn
     cn.Open Provider, "atm", "atm"
-    Set rst = New Recordset
+    Set Rst = New Recordset
     sql = "Select distinct(location) from d_suppliers ORDER BY location"
-    rst.Open sql, cn, adOpenKeyset, adLockOptimistic
-    While Not rst.EOF
-    cbobranch.AddItem rst.Fields(0)
-    rst.MoveNext
+    Rst.Open sql, cn, adOpenKeyset, adLockOptimistic
+    While Not Rst.EOF
+    cbobranch.AddItem Rst.Fields(0)
+    Rst.MoveNext
     Wend
 
 End Sub

@@ -218,7 +218,7 @@ Begin VB.Form frmproduct1s
       _ExtentX        =   2355
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   120520705
+      Format          =   52559873
       CurrentDate     =   38814
    End
    Begin VB.CommandButton cmdclose 
@@ -385,11 +385,11 @@ End Sub
 
 Private Sub chkserialrequired_Click()
 If chkserialrequired = vbChecked Then
-txtSERIALNO.Visible = True
+txtserialno.Visible = True
 seria = 1
 Else
 seria = 0
-txtSERIALNO.Visible = False
+txtserialno.Visible = False
 End If
 End Sub
 
@@ -461,10 +461,10 @@ Wend
 End If
 
 MsgBox "You have successfully deleted product code", vbInformation
-txtBalance = ""
+txtbalance = ""
 txtpcode = ""
 txtpname = ""
-txtSERIALNO = ""
+txtserialno = ""
 txtquantity = ""
 
 End Sub
@@ -485,8 +485,8 @@ txtpprice = ""
 txtquantity = ""
 cbosupplier = ""
 txtpname = ""
-txtBalance = ""
-txtSERIALNO = ""
+txtbalance = ""
+txtserialno = ""
 End Sub
 
 Private Sub cmdproductaging_Click()
@@ -589,7 +589,7 @@ If lblcracc = "" Then MsgBox "select the account to credit": Exit Sub
 
 If cbosupplier = "" Then MsgBox "select the agrovet supplier": Exit Sub
 
-If cbobranch = "" Then MsgBox "select the Branch": Exit Sub
+If cboBranch = "" Then MsgBox "select the Branch": Exit Sub
 
 '
 Dim unsera As Integer
@@ -599,7 +599,7 @@ MsgBox "Quantity cannot be Zero", vbInformation
 Exit Sub
 
 End If
-If Trim(txtBalance) = "" Then txtBalance = 0
+If Trim(txtbalance) = "" Then txtbalance = 0
  If chkserialrequired = vbChecked Then
 
     seria = 1
@@ -634,10 +634,10 @@ Set rs = New ADODB.Recordset
 rs.Open sql, cn
 If rs.EOF Then
 '// insert into ag_products
-If txtSERIALNO = "" Then txtSERIALNO = 0
+If txtserialno = "" Then txtserialno = 0
 sql = ""
 sql = "set dateformat dmy insert into  ag_products(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
-sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtSERIALNO.Text & "','" & txtquantity.Text & "','" & txtBalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','" & cbosupplier & "',0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cbobranch & "')"
+sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtserialno.Text & "','" & txtquantity.Text & "','" & txtbalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','" & cbosupplier & "',0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cboBranch & "')"
 cn.Execute sql
 
 
@@ -647,7 +647,7 @@ If txtpprice = "" Then txtpprice = 0
 sql = ""
 sql = "set dateformat DMY INSERT INTO ag_stockbalance"
 sql = sql & " (p_code, productname, openningstock, changeinstock, stockbalance, transdate,companyid,pprice,sprice,RLevel)"
-sql = sql & " VALUES     ('" & txtpcode.Text & "','" & txtpname & "', " & txtBalance & ", " & txtquantity & ", " & txtBalance.Text + txtquantity.Text & ", '" & txtdateenterered & "',1," & txtpprice & "," & txtsellingprice & "," & txtRLevel & ")"
+sql = sql & " VALUES     ('" & txtpcode.Text & "','" & txtpname & "', " & txtbalance & ", " & txtquantity & ", " & txtbalance.Text + txtquantity.Text & ", '" & txtdateenterered & "',1," & txtpprice & "," & txtsellingprice & "," & txtRLevel & ")"
 cn.Execute sql
 
 
@@ -656,7 +656,7 @@ Else
 Dim D As Double
 If Not IsNull(rs.Fields(2)) Then D = rs.Fields(2)
 sql = ""
-sql = "set dateformat DMY update ag_products set p_name='" & txtpname & "',qin='" & txtquantity.Text & "',qout='" & txtquantity.Text + rs.Fields("qout") & "',o_bal=" & txtquantity.Text + rs.Fields("qout") & ",last_d_updated='" & Date & "',user_id='" & User & "',audit_date='" & Date & "',unserialized=" & unsera + D & ",SERIA=" & seria & ",pprice=" & txtpprice & ",sprice=" & txtsellingprice & " where p_code='" & txtpcode.Text & "'"
+sql = "set dateformat DMY update ag_products set p_name='" & txtpname & "',qin='" & txtquantity.Text & "',qout='" & txtquantity.Text + rs.Fields("qout") & "',o_bal=" & txtquantity.Text + rs.Fields("qout") & ",last_d_updated='" & Date & "',user_id='" & User & "',audit_date='" & Date & "',unserialized=" & unsera + D & ",SERIA=" & seria & ",pprice=" & txtpprice & ",sprice=" & txtsellingprice & " where p_code='" & txtpcode.Text & "' and Branch='" & cboBranch & "'"
 cn.Execute sql
 
 Dim rsst As Recordset
@@ -668,7 +668,7 @@ If Not rsst.EOF Then
 sql = ""
 sql = "set dateformat DMY INSERT INTO ag_stockbalance"
 sql = sql & " (p_code, productname, openningstock, changeinstock, stockbalance, transdate,companyid)"
-sql = sql & " VALUES     ('" & txtpcode & "', '" & txtpname & "', '" & txtBalance & "', '" & txtquantity & "', '" & txtquantity.Text + rs.Fields("qout") & "', '" & txtdateenterered & "',1)"
+sql = sql & " VALUES     ('" & txtpcode & "', '" & txtpname & "', '" & txtbalance & "', '" & txtquantity & "', '" & txtquantity.Text + rs.Fields("qout") & "', '" & txtdateenterered & "',1)"
 cn.Execute sql
 
 
@@ -687,14 +687,14 @@ End If
 If seria = 1 Then
 Set Rst = Nothing
     sql = ""
-   sql = "select * from serialno where serialno='" & txtSERIALNO & "' AND P_CODE='" & txtpcode & "' and used=0"
+   sql = "select * from serialno where serialno='" & txtserialno & "' AND P_CODE='" & txtpcode & "' and used=0"
    Set Rst = New ADODB.Recordset
    Rst.Open sql, cn, adOpenKeyset, adLockOptimistic
 
 If Rst.EOF Then
 sql = ""
 sql = "set dateformat DMY INSERT INTO serialno(serialno,p_code,used)"
-sql = sql & " values('" & txtSERIALNO & "','" & txtpcode & "',0)"
+sql = sql & " values('" & txtserialno & "','" & txtpcode & "',0)"
 cn.Execute sql
 Else
 MsgBox "Item is in place and not yet used", vbInformation
@@ -703,22 +703,29 @@ End If
 End If
 '****************'
 sql = ""
-If txtSERIALNO = "" Then
-txtSERIALNO = 0
+If txtserialno = "" Then
+txtserialno = 0
 End If
 
+'''insert table for products checking
+sql = ""
+sql = "set dateformat dmy insert into  ag_products1(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
+sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtserialno.Text & "','" & txtquantity.Text & "','" & txtbalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','RECEIVE' ,0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cboBranch & "')"
+cn.Execute sql
+'''end
+
 sql = "set dateformat dmy insert into  ag_products3(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
-sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtSERIALNO.Text & "','" & txtquantity.Text & "','" & txtBalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','" & cbosupplier & "',0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cbobranch & "')"
+sql = sql & "  values('" & txtpcode.Text & "','" & txtpname.Text & "','" & txtserialno.Text & "','" & txtquantity.Text & "','" & txtbalance.Text + txtquantity.Text & "','" & txtdateenterered.value & "','" & txtdateenterered.value & "','Admin','" & Date & "','" & txtquantity.Text & "','" & cbosupplier & "',0," & unsera & "," & seria & ",'" & txtpprice & "','" & txtsellingprice & "','" & cboBranch & "')"
 cn.Execute sql
 
 sql = ""
 sql = "set dateformat dmy insert into gltransactions(transdate,amount,draccno,craccno,documentno,source,transdescript,auditid,cash,doc_posted) values('" & txtdateenterered & "'," & txtquantity & " *" & txtpprice & ",'" & lbldracc & "','" & lblcracc & "','stock intake','" & cbosupplier & "' ,'stock intake','" & User & "',0,0)"
 oSaccoMaster.ExecuteThis (sql)
 
-txtBalance = ""
+txtbalance = ""
 txtpcode = ""
 txtpname = ""
-txtSERIALNO = ""
+txtserialno = ""
 txtquantity = ""
 txtpprice = ""
 txtsellingprice = ""
@@ -797,7 +804,7 @@ txtdateenterered = Format(Date, "dd,mm,yyyy")
     sql = "Select BName from d_Branch order by BName asc"
     Set rs = oSaccoMaster.GetRecordset(sql)
     While Not rs.EOF
-     cbobranch.AddItem rs.Fields(0)
+     cboBranch.AddItem rs.Fields(0)
     rs.MoveNext
     Wend
    
@@ -868,9 +875,9 @@ If Not IsNull(rs.Fields(4)) Then cbosupplier = (rs.Fields(4))
 If Not IsNull(rs.Fields(5)) Then txtpprice = (rs.Fields(5))
 If Not IsNull(rs.Fields(6)) Then txtsellingprice = (rs.Fields(6))
 'If Not IsNull(rs.Fields(2)) Then txtserialno = (rs.Fields(2))
-If Not IsNull(rs.Fields(3)) Then txtBalance = (rs.Fields(3))
+If Not IsNull(rs.Fields(3)) Then txtbalance = (rs.Fields(3))
 
-If txtBalance <= 0 Then
+If txtbalance <= 0 Then
 MsgBox "Your stock is below zero please reorder", vbInformation
 End If
 '// check with serial no if it exist
@@ -954,11 +961,11 @@ rs.Open sql, cn
 If Not rs.EOF Then
  txtpcode = (rs.Fields(0))
 If Not IsNull(rs.Fields(1)) Then txtpname = (rs.Fields(1))
-If Not IsNull(rs.Fields(3)) Then txtBalance = (rs.Fields(3))
+If Not IsNull(rs.Fields(3)) Then txtbalance = (rs.Fields(3))
 If Not IsNull(rs.Fields(4)) Then cbosupplier = (rs.Fields(4))
 If Not IsNull(rs.Fields(5)) Then txtpprice = (rs.Fields(5))
 If Not IsNull(rs.Fields(6)) Then txtsellingprice = (rs.Fields(6))
-If txtBalance <= 0 Then
+If txtbalance <= 0 Then
 MsgBox "Warning:Your stock is below zero please reorder", vbInformation
 Else
 

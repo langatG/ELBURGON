@@ -174,7 +174,7 @@ Begin VB.Form frmTransportStmts
       _ExtentX        =   2990
       _ExtentY        =   450
       _Version        =   393216
-      Format          =   111542273
+      Format          =   121634817
       CurrentDate     =   40109
    End
    Begin VB.Label Label1 
@@ -292,6 +292,7 @@ Unload Me
 End Sub
 
 Private Sub cmdPrint_Click()
+On Error GoTo ErrorHandler
 Dim fso, chkPrinter, txtFile
     Dim ttt
      Dim escFeedAndCut As String
@@ -343,11 +344,11 @@ Enddate = DTPStmts
 oSaccoMaster.ExecuteThis ("d_sp_TransUpdate '" & Startdate & "','" & Enddate & "','" & User & "','" & txtTCode & "'")
 If optAdvanceSlip.value = True Then
 '--Net amount as at date
-    Set rst1 = New ADODB.Recordset
+    Set Rst1 = New ADODB.Recordset
         sql = "d_sp_PrintTransStmt '" & txtTCode & "','" & DTPStmts & "'"
-    Set rst1 = oSaccoMaster.GetRecordset(sql)
+    Set Rst1 = oSaccoMaster.GetRecordset(sql)
     
-    If rst1.EOF Then
+    If Rst1.EOF Then
     MsgBox "There is no current record."
         txtTCode.SetFocus
         Exit Sub
@@ -367,7 +368,7 @@ If optAdvanceSlip.value = True Then
     txtFile.WriteLine "........................................"
     txtFile.WriteLine escAlignLeft
     txtFile.WriteLine "Trans Code : " & txtTCode
-    txtFile.WriteLine "Names : " & rst1.Fields("TransName")
+    txtFile.WriteLine "Names : " & Rst1.Fields("TransName")
     txtFile.WriteLine "Issue Items/Services worth not more than"
     Dim rsg As New ADODB.Recordset
     Set rsg = oSaccoMaster.GetRecordset("SET  dateformat dmy  SELECT     SUM(Amount) + SUM(Subsidy) AS Gross   FROM  d_TransDetailed  WHERE     (Trans_Code = '" & txtTCode & "') AND (EndPeriod = '" & DTPStmts & "')")
@@ -391,10 +392,10 @@ If optAdvanceSlip.value = True Then
 End If
 
 If OptNormalStmt.value = True Then
-    Set rst = New ADODB.Recordset
+    Set Rst = New ADODB.Recordset
         sql = "d_sp_PrintTransStmt '" & txtTCode & "','" & Enddate & "'"
-    Set rst = oSaccoMaster.GetRecordset(sql)
-If rst.EOF Then
+    Set Rst = oSaccoMaster.GetRecordset(sql)
+If Rst.EOF Then
     MsgBox "There is no record in the payroll for Transporter with code " & txtTCode, vbInformation
         txtTCode.SetFocus
     Exit Sub
@@ -418,34 +419,34 @@ End If
     txtFile.WriteLine escAlignLeft
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "Trans Code :" & txtTCode
-    txtFile.WriteLine "Tans Name :" & rst!TransName
+    txtFile.WriteLine "Tans Name :" & Rst!TransName
     txtFile.WriteLine "........................................"
-    txtFile.WriteLine "Total Kgs Delivered :" & Format(rst!QntySup, "#,##0.00" & " Kgs")
-    txtFile.WriteLine "Gross Amount               Kshs: " & Format(rst!Amnt, "#,##0.00") & ""
-    txtFile.WriteLine "Subsidy                    Kshs: " & Format(rst!subsidy, "#,##0.00") & ""
-    txtFile.WriteLine "Net Gross                  Kshs: " & Format(rst!GrossPay, "#,##0.00") & ""
+    txtFile.WriteLine "Total Kgs Delivered :" & Format(Rst!QntySup, "#,##0.00" & " Kgs")
+    txtFile.WriteLine "Gross Amount               Kshs: " & Format(Rst!Amnt, "#,##0.00") & ""
+    txtFile.WriteLine "Subsidy                    Kshs: " & Format(Rst!subsidy, "#,##0.00") & ""
+    txtFile.WriteLine "Net Gross                  Kshs: " & Format(Rst!GrossPay, "#,##0.00") & ""
    
     txtFile.Write escBoldOn
     txtFile.WriteLine "DEDUCTIONS"
     txtFile.WriteLine "-------------"
     txtFile.Write escBoldOff
     
-    txtFile.WriteLine "Agrovet          Kshs: " & Format(rst!agrovet, "#,##0.00") & ""
-    txtFile.WriteLine "TM Shares        Kshs: " & Format(rst!TMShares, "#,##0.00") & ""
-    txtFile.WriteLine "H Shares         Kshs: " & Format(rst!HShares, "#,##0.00") & ""
-    txtFile.WriteLine "Advances         Kshs: " & Format(rst!Advance, "#,##0.00") & ""
-    txtFile.WriteLine "FSA              Kshs: " & Format(rst!FSA, "#,##0.00") & ""
-    txtFile.WriteLine "AI               Kshs: " & Format(rst!AI, "#,##0.00") & ""
-    txtFile.WriteLine "Others           Kshs: " & Format(rst!Others, "#,##0.00") & ""
-    txtFile.WriteLine "Total Deductions Kshs: " & Format(rst!Totaldeductions, "#,##0.00") & ""
+    txtFile.WriteLine "Agrovet          Kshs: " & Format(Rst!agrovet, "#,##0.00") & ""
+    txtFile.WriteLine "TM Shares        Kshs: " & Format(Rst!TMShares, "#,##0.00") & ""
+    txtFile.WriteLine "H Shares         Kshs: " & Format(Rst!HShares, "#,##0.00") & ""
+    txtFile.WriteLine "Advances         Kshs: " & Format(Rst!Advance, "#,##0.00") & ""
+    txtFile.WriteLine "FSA              Kshs: " & Format(Rst!FSA, "#,##0.00") & ""
+    txtFile.WriteLine "AI               Kshs: " & Format(Rst!AI, "#,##0.00") & ""
+    txtFile.WriteLine "Others           Kshs: " & Format(Rst!Others, "#,##0.00") & ""
+    txtFile.WriteLine "Total Deductions Kshs: " & Format(Rst!Totaldeductions, "#,##0.00") & ""
     txtFile.WriteLine "........................................"
-    txtFile.WriteLine "NET PAY                    Kshs: " & Format((rst!NetPay), "#,##0.00") & ""
+    txtFile.WriteLine "NET PAY                    Kshs: " & Format((Rst!NetPay), "#,##0.00") & ""
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "BANK DETAILS"
     txtFile.WriteLine "-------------"
-    txtFile.WriteLine "Bank Name :" & rst!BankName & ""
-    txtFile.WriteLine "Bank Branch :" & rst!Branch
-    txtFile.WriteLine "Account Number :" & rst!ACCNO
+    txtFile.WriteLine "Bank Name :" & Rst!BankName & ""
+    txtFile.WriteLine "Bank Branch :" & Rst!Branch
+    txtFile.WriteLine "Account Number :" & Rst!ACCNO
 
     txtFile.WriteLine "---------------------------------------"
     txtFile.WriteLine "        Date :" & Format(Get_Server_Date, "dd/mm/yyyy HH:MM:SS AM/PM")
@@ -488,7 +489,7 @@ If OptDetailedStmt.value = True Then
     
     txtFile.WriteLine "Name :" & rs.Fields(1)
     txtFile.WriteLine "........................................"
-    txtFile.WriteLine "SNo " & vbTab & "SUBSIDY" & vbTab & "QNTY" & vbTab & "PAYABLE"
+    txtFile.WriteLine "SNo " & vbTab & "SUBSIDY   QNTY    PAYABLE"
     txtFile.WriteLine "........................................"
     
     
@@ -502,51 +503,57 @@ If OptDetailedStmt.value = True Then
         Wend
         oSaccoMaster.ExecuteThis ("d_sp_TransUpdate '" & Startdate & "','" & Enddate & "','" & User & "','" & txtTCode & "'")
         
-    Set rst = New ADODB.Recordset
+    Set Rst = New ADODB.Recordset
         'sql = "d_sp_PrintTransStmt '" & txtTCode & "','" & Enddate & "'"
-        sql = "SET              dateformat dmy SELECT     dbo.d_TransportersPayRoll.Code, dbo.d_Transporters.TransName, dbo.d_TransportersPayRoll.QntySup, dbo.d_TransportersPayRoll.Amnt, dbo.d_TransportersPayRoll.Subsidy, dbo.d_TransportersPayRoll.GrossPay,  dbo.d_TransportersPayRoll.Agrovet, dbo.d_TransportersPayRoll.TMShares, dbo.d_TransportersPayRoll.FSA, dbo.d_TransportersPayRoll.HShares, dbo.d_TransportersPayRoll.Advance, dbo.d_TransportersPayRoll.AI,dbo.d_TransportersPayRoll.Others, dbo.d_TransportersPayRoll.Totaldeductions, dbo.d_TransportersPayRoll.NetPay,dbo.d_TransportersPayRoll.BankName , dbo.d_TransportersPayRoll.Branch, dbo.d_TransportersPayRoll.accno   FROM dbo.d_Transporters INNER JOIN dbo.d_TransportersPayRoll ON dbo.d_Transporters.TransCode = dbo.d_TransportersPayRoll.Code   WHERE     (dbo.d_TransportersPayRoll.Code = '" & txtTCode & "') AND (dbo.d_TransportersPayRoll.EndPeriod = '" & Enddate & "')"
-    Set rst = oSaccoMaster.GetRecordset(sql)
+        sql = "SET dateformat dmy SELECT dbo.d_TransportersPayRoll.Code, dbo.d_Transporters.TransName, dbo.d_TransportersPayRoll.QntySup, dbo.d_TransportersPayRoll.Amnt, dbo.d_TransportersPayRoll.Subsidy, dbo.d_TransportersPayRoll.GrossPay,  dbo.d_TransportersPayRoll.Agrovet, dbo.d_TransportersPayRoll.TMShares, dbo.d_TransportersPayRoll.FSA, dbo.d_TransportersPayRoll.HShares, dbo.d_TransportersPayRoll.Advance, dbo.d_TransportersPayRoll.AI,dbo.d_TransportersPayRoll.Others, dbo.d_TransportersPayRoll.Totaldeductions, dbo.d_TransportersPayRoll.NetPay,dbo.d_TransportersPayRoll.BankName , dbo.d_TransportersPayRoll.Branch, dbo.d_TransportersPayRoll.accno   FROM dbo.d_Transporters INNER JOIN dbo.d_TransportersPayRoll ON dbo.d_Transporters.TransCode = dbo.d_TransportersPayRoll.Code   WHERE     (dbo.d_TransportersPayRoll.Code = '" & txtTCode & "') AND (dbo.d_TransportersPayRoll.EndPeriod = '" & Enddate & "')"
+    Set Rst = oSaccoMaster.GetRecordset(sql)
    txtFile.WriteLine "........................................"
-   txtFile.WriteLine "TOTAL Kgs : " & Format(rst!QntySup, "#,##0.00 ") & vbNewLine & "Amount " & vbTab & "" & vbTab & "Kshs " & Format(rst!Amnt, "#,##0.00") & " " & vbNewLine & "Subsidy " & vbTab & "Kshs " & Format(rst!subsidy, "#,##0.00") & vbNewLine & "Gross Amount " & vbTab & "Kshs " & Format((rst!subsidy + rst!Amnt), "#,##0.00")
+   txtFile.WriteLine "TOTAL Kgs : " & Format(Rst!QntySup, "#,##0.00 ") & vbNewLine & "Amount " & vbTab & "" & vbTab & "Kshs " & Format(Rst!Amnt, "#,##0.00") & " " & vbNewLine & "Subsidy " & vbTab & "Kshs " & Format(Rst!subsidy, "#,##0.00") & vbNewLine & "Gross Amount " & vbTab & "Kshs " & Format((Rst!subsidy + Rst!Amnt), "#,##0.00")
    txtFile.WriteLine "........................................"
     txtFile.WriteLine escBoldOn
     txtFile.WriteLine "DEDUCTIONS"
     txtFile.WriteLine "........................................"
     txtFile.WriteLine escBoldOff
     Dim Gross As Currency
-    Gross = rst!subsidy + rst!Amnt
+    Gross = Rst!subsidy + Rst!Amnt
     
   '--d_sp_PrintTransDeduc @Code varchar(35), @SDate varchar(12), @EDate varchar(12) AS
-Set rst = New ADODB.Recordset
+Set Rst = New ADODB.Recordset
 sql = "d_sp_PrintTransDeduc " & txtTCode & ",'" & Startdate & "','" & Enddate & "'"
-Set rst = oSaccoMaster.GetRecordset(sql)
+Set Rst = oSaccoMaster.GetRecordset(sql)
     
 
     txtFile.WriteLine "........................................"
     txtFile.WriteLine "DATE " & vbTab & "" & vbTab & "AMOUNT" & vbTab & "DESCRIPTION"
     txtFile.WriteLine "........................................"
 
-    While Not rst.EOF
+    While Not Rst.EOF
         'MsgBox rs!QSupplied
-        txtFile.WriteLine rst.Fields(0) & " " & vbTab & " " & Format(rst.Fields(2), "#,##0.00" & vbTab & " " & rst.Fields(1) & " ")
+        txtFile.WriteLine Rst.Fields(0) & " " & vbTab & " " & Format(Rst.Fields(2), "#,##0.00" & vbTab & " " & Rst.Fields(1) & " ")
         'txtfile.WriteLine rs!PPU
-         rst.MoveNext
+         Rst.MoveNext
         
         Wend
-    Set rst1 = New ADODB.Recordset
+    Set Rst1 = New ADODB.Recordset
         sql = "SET dateformat dmy SELECT SUM(Amount) AS TOTAL From d_Transport_Deduc WHERE     (TransCode = '" & txtTCode & "') AND (TDate_Deduc BETWEEN '" & Startdate & "' AND '" & Enddate & "')"
-    Set rst1 = oSaccoMaster.GetRecordset(sql)
+    Set Rst1 = oSaccoMaster.GetRecordset(sql)
     txtFile.WriteLine "........................................"
-    If Not IsNull(rst1!total) Then
-    txtFile.WriteLine "Total Deductions Kshs: " & Format(rst1!total, "#,##0.00") & ""
+    If Not IsNull(Rst1!total) Then
+    txtFile.WriteLine "Total Deductions Kshs: " & Format(Rst1!total, "#,##0.00") & ""
     Else
     txtFile.WriteLine "Total Deductions Kshs: 0.00"
     End If
     txtFile.WriteLine "........................................"
-    If Not IsNull(rst1!total) Then
-    txtFile.WriteLine "NET PAY                   Kshs :" & Format(Gross - rst1!total, "#,##0.00") & ""
+    If Not IsNull(Rst1!total) Then
+    txtFile.WriteLine "NET PAY                   Kshs :" & Format(Gross - Rst1!total, "#,##0.00") & ""
     Else
     txtFile.WriteLine "NET PAY                   Kshs :" & Format(Gross, "#,##0.00") & ""
+    End If
+    sql = "SET dateformat dmy SELECT isnull(SUM(Amount),0) AS TOTALAMT From d_Transport_Deduc WHERE (TransCode = '" & txtTCode & "') AND Remarks like'%elc%'"
+    Set rs = oSaccoMaster.GetRecordset(sql)
+    If rs!TOTALAMT > 0 Then
+    txtFile.WriteLine "-----------------------------------------"
+    txtFile.WriteLine "TOTAL PAID ECLOF LOAN Kshs :" & Format(rs!TOTALAMT, "#,##0.00") & ""
     End If
     txtFile.WriteLine "-----------------------------------------"
     txtFile.WriteLine "BANK DETAILS"
@@ -570,6 +577,9 @@ Set rst = oSaccoMaster.GetRecordset(sql)
 '    d_StmtA4
     End If
     txtTCode = ""
+    Exit Sub
+ErrorHandler:
+MsgBox err.description
 End Sub
 
 Private Sub DTPStmts_Validate(Cancel As Boolean)

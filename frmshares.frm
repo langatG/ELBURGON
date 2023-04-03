@@ -308,7 +308,7 @@ Begin VB.Form frmshares
       _ExtentX        =   3413
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   111083521
+      Format          =   119537665
       CurrentDate     =   40637
    End
    Begin MSComCtl2.DTPicker DTPicker1 
@@ -320,7 +320,7 @@ Begin VB.Form frmshares
       _ExtentX        =   2778
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   111083521
+      Format          =   119537665
       CurrentDate     =   40442
    End
    Begin MSComCtl2.DTPicker DTPicker2 
@@ -332,7 +332,7 @@ Begin VB.Form frmshares
       _ExtentX        =   2778
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   111083521
+      Format          =   119537665
       CurrentDate     =   40442
    End
    Begin VB.Label Label1 
@@ -619,11 +619,11 @@ If Trim(txtName) = "" Then
     Exit Sub
 End If
 
- If Optsupplier.value = True Then
-    If txtsno = "" Then
+ If optSupplier.value = True Then
+    If txtSNo = "" Then
         MsgBox "Please enter supplier number."
         Exit Sub
-        txtsno.SetFocus
+        txtSNo.SetFocus
     End If
     
 If Trim(cboLocation) = "" Then
@@ -639,26 +639,26 @@ End If
 End If
     
     
-Set rst = oSaccoMaster.GetRecordset("SELECT SNo FROM d_Suppliers WHERE SNo = '" & txtsno & "'")
+Set Rst = oSaccoMaster.GetRecordset("SELECT SNo FROM d_Suppliers WHERE SNo = '" & txtSNo & "'")
 
-If rst.RecordCount = 0 Then
+If Rst.RecordCount = 0 Then
  MsgBox "Please enter a valid supplier number."
- txtsno.SetFocus
+ txtSNo.SetFocus
  Exit Sub
 End If
 End If
 
 If optTransport.value = True Then
-    If txtsno = "" Then
+    If txtSNo = "" Then
         MsgBox "Please enter transporter code."
         Exit Sub
-        txtsno.SetFocus
+        txtSNo.SetFocus
     End If
-    Set rs = oSaccoMaster.GetRecordset("SELECT TransCode FROM d_Transporters WHERE TransCode = '" + txtsno + "'")
+    Set rs = oSaccoMaster.GetRecordset("SELECT TransCode FROM d_Transporters WHERE TransCode = '" + txtSNo + "'")
 
 If rs.RecordCount = 0 Then
  MsgBox "Please enter a valid transporter code."
- txtsno.SetFocus
+ txtSNo.SetFocus
  Exit Sub
 End If
 End If
@@ -676,23 +676,23 @@ End If
 
 Dim desc As String
 desc = cboType
- Set rst = oSaccoMaster.GetRecordset("SELECT * FROM d_Suppliers WHERE SNo = '" & txtsno & "'")
- Set RShares1 = oSaccoMaster.GetRecordset("SELECT SNo FROM d_SharesReport WHERE Sno = '" & txtsno & "'")
+ Set Rst = oSaccoMaster.GetRecordset("SELECT * FROM d_Suppliers WHERE SNo = '" & txtSNo & "'")
+ Set RShares1 = oSaccoMaster.GetRecordset("SELECT SNo FROM d_SharesReport WHERE Sno = '" & txtSNo & "'")
  If RShares1.EOF Then
   Dim namecheck As String
- namecheck = Replace(rst!NAMES, "'", "")
+ namecheck = Replace(Rst!NAMES, "'", "")
     sql = ""
     sql = "set dateformat dmy insert into d_SharesReport(Sno, Name, IDNo, Type, Amount)"
-    sql = sql & " values ('" & txtsno & "','" & namecheck & "','" & rst!idno & "','SHARES','0') "
+    sql = sql & " values ('" & txtSNo & "','" & namecheck & "','" & Rst!idno & "','SHARES','0') "
     oSaccoMaster.ExecuteThis (sql)
  End If
 
 Dim rss As New Recordset, amt As Double, rsts As New Recordset, shareamt As Double, TXTshares As Double
-Set rsts = oSaccoMaster.GetRecordset("SELECT    SUM(Amount) AS amtt From d_sconribution WHERE     (transdescription LIKE '%shares%') AND (SNo = '" & txtsno & "')")
+Set rsts = oSaccoMaster.GetRecordset("SELECT    SUM(Amount) AS amtt From d_sconribution WHERE     (transdescription LIKE '%shares%') AND (SNo = '" & txtSNo & "')")
 If Not rsts.EOF Then
 shareamt = IIf(IsNull(rsts!amtt), 0, rsts!amtt)
 End If
-Set rss = oSaccoMaster.GetRecordset("SELECT    SUM(Amount) AS amt From d_supplier_deduc WHERE     (Description LIKE '%shares%') AND (SNo = '" & txtsno & "')")
+Set rss = oSaccoMaster.GetRecordset("SELECT    SUM(Amount) AS amt From d_supplier_deduc WHERE     (Description LIKE '%shares%') AND (SNo = '" & txtSNo & "')")
 If Not rss.EOF Then
 TXTshares = IIf(IsNull(rss!amt), 0, rss!amt) + shareamt
 End If
@@ -704,7 +704,7 @@ If chkop = vbChecked Then GoTo HEREEE
     
     '//update the regdate and memberno
     sql = ""
-    sql = "set dateformat dmy update d_SharesReport set Amount='" & TXTshares + txtAmnt & "' where sno='" & txtsno & "'"
+    sql = "set dateformat dmy update d_SharesReport set Amount='" & TXTshares + txtAmnt & "' where sno='" & txtSNo & "'"
     oSaccoMaster.ExecuteThis (sql)
     
     'insert inot d_contrib
@@ -712,7 +712,7 @@ If chkop = vbChecked Then GoTo HEREEE
     'SELECT     idno, transdate, amount, bal, transdescription, auditid  FROM         d_sconribution
     sql = ""
     sql = "set dateformat dmy insert into d_sconribution(sno, transdate, amount, bal, transdescription, auditid,toledgers,datepostedtoledger,Remarks)"
-    sql = sql & " values('" & txtsno & "','" & DTPicker1 & "','" & txtAmnt & "','" & txtAmnt & "','" & cboType & "','" & User & "','0','" & DTPicker1 & "','" & cash & "') "
+    sql = sql & " values('" & txtSNo & "','" & DTPicker1 & "','" & txtAmnt & "','" & txtAmnt & "','" & cboType & "','" & User & "','0','" & DTPicker1 & "','" & cash & "') "
     oSaccoMaster.ExecuteThis (sql)
     
     End If
@@ -721,19 +721,19 @@ If chkop = vbChecked Then GoTo HEREEE
         Startdate = DateSerial(year(DTPicker2), month(DTPicker2), 1)
         Enddate = DateSerial(year(DTPicker2), month(DTPicker2) + 1, 1 - 1)
         
-        strSQL = "d_sp_Shares '" & txtIdNo & "','" & txtsno & "','" & txtName & "','" & cboSex.Text & "','" & cboLocation.Text & "','" & cboType.Text & "','"
+        strSQL = "d_sp_Shares '" & txtIdNo & "','" & txtSNo & "','" & txtName & "','" & cboSex.Text & "','" & cboLocation.Text & "','" & cboType.Text & "','"
         strSQL = strSQL & DTPicker1 & "','" & cash & "','" & Enddate & "'," & txtAmnt & "," & txtAmnt & ",'" & Enddate & "','" & User & "'"
         oSaccoMaster.ExecuteThis (strSQL)
         
         sql = ""
         sql = "set dateformat dmy insert into d_sconribution(sno, transdate, amount, bal, transdescription, auditid,toledgers,datepostedtoledger,Remarks)"
-        sql = sql & " values('" & txtsno & "','" & DTPicker1 & "','" & txtAmnt & "','" & txtAmnt & "','" & cboType & "','" & User & "','0','" & DTPicker1 & "','" & cash & "') "
+        sql = sql & " values('" & txtSNo & "','" & DTPicker1 & "','" & txtAmnt & "','" & txtAmnt & "','" & cboType & "','" & User & "','0','" & DTPicker1 & "','" & cash & "') "
         oSaccoMaster.ExecuteThis (sql)
         
-        sql = "d_SP_PreSets '" & txtsno & "','" & desc & "','','" & Startdate & "','" & txtAmnt & "',0,'" & User & "',0,0"
+        sql = "d_SP_PreSets '" & txtSNo & "','" & desc & "','','" & Startdate & "','" & txtAmnt & "',0,'" & User & "',0,0"
         oSaccoMaster.ExecuteThis (sql)
         sql = ""
-        sql = "update d_shares set regdate='" & DTPregdate & "',mno='" & txtMemberNo & "',bal=" & IIf(txtOpeningBal = "", 0, txtOpeningBal) & " where sno='" & txtsno & "' and idno='" & txtIdNo & "'"
+        sql = "update d_shares set regdate='" & DTPregdate & "',mno='" & txtmemberno & "',bal=" & IIf(txtopeningbal = "", 0, txtopeningbal) & " where sno='" & txtSNo & "' and idno='" & txtIdNo & "'"
         oSaccoMaster.ExecuteThis (sql)
     End If
 '/////do it here
@@ -742,15 +742,15 @@ If chkop = vbChecked Then
 
 HEREEE:
 
-    Set rst = New ADODB.Recordset
-    sql = "select bal from d_shares where sno= '" & txtsno & "'"
-    Set rst = oSaccoMaster.GetRecordset(sql)
-    If Not rst.EOF Then
-    txtTCHPBalances = rst.Fields(0)
+    Set Rst = New ADODB.Recordset
+    sql = "select bal from d_shares where sno= '" & txtSNo & "'"
+    Set Rst = oSaccoMaster.GetRecordset(sql)
+    If Not Rst.EOF Then
+    txtTCHPBalances = Rst.Fields(0)
     
      '//get the balance
     
-        sql = "SELECT     bal   FROM         d_sconribution  WHERE     sno ='" & txtsno & "'  ORDER BY transdate DESC, id DESC "
+        sql = "SELECT bal FROM d_sconribution  WHERE sno ='" & txtSNo & "'  ORDER BY transdate DESC, id DESC "
         Dim rr As New ADODB.Recordset
         Set rr = oSaccoMaster.GetRecordset(sql)
         If Not rr.EOF Then
@@ -759,11 +759,11 @@ HEREEE:
           'From [EASYTEA].[dbo].[d_sconribution]
           sql = ""
           sql = "set dateformat dmy insert into d_sconribution([sno],[transdate],[amount],[bal],[transdescription],[auditid])"
-          sql = sql & " values ('" & txtsno & "','" & DTPicker1 & "'," & txtAmnt & "," & txtTCHPBalances & ",'Shares-Openning Bal','" & User & "') "
+          sql = sql & " values ('" & txtSNo & "','" & DTPicker1 & "'," & txtAmnt & "," & txtTCHPBalances & ",'Shares-Openning Bal','" & User & "') "
           oSaccoMaster.ExecuteThis (sql)
           
           sql = ""
-          sql = "update d_shares set bal=" & txtTCHPBalances & ",amount=" & txtOpeningBal & " where sno='" & txtsno & "' "
+          sql = "update d_shares set bal=" & txtTCHPBalances & ",amount=" & txtopeningbal & " where sno='" & txtSNo & "' "
           oSaccoMaster.ExecuteThis (sql)
         'txtTCHPBALANCE = rr.Fields(0)
         End If
@@ -771,22 +771,22 @@ HEREEE:
         '//add new one
         txtTCHPBalances = 0
         sql = "insert into d_Shares(sno,idno, Cash,bal,auditid)"
-        sql = sql & " values('" & txtsno & "','" & txtIdNo & "',1,'" & txtAmnt & "','" & User & "')"
+        sql = sql & " values('" & txtSNo & "','" & txtIdNo & "',1,'" & txtAmnt & "','" & User & "')"
         oSaccoMaster.ExecuteThis (sql)
         sql = ""
         sql = "set dateformat dmy insert into d_sconribution([sno],[transdate],[amount],[bal],[transdescription],[auditid])"
-        sql = sql & " values ('" & txtsno & "','" & DTPicker1 & "','" & txtAmnt & "','" & txtAmnt & "','Shares-Openning Bal','" & User & "') "
+        sql = sql & " values ('" & txtSNo & "','" & DTPicker1 & "','" & txtAmnt & "','" & txtAmnt & "','Shares-Openning Bal','" & User & "') "
         oSaccoMaster.ExecuteThis (sql)
         
           sql = ""
-          sql = "update d_shares set amount='" & txtOpeningBal & "' where sno='" & txtsno & "' "
+          sql = "update d_shares set amount='" & txtopeningbal & "' where sno='" & txtSNo & "' "
           oSaccoMaster.ExecuteThis (sql)
     
     End If
 End If
 
 MsgBox "Records saved successfully!"
-txtsno = ""
+txtSNo = ""
 txtAmnt = ""
 txtName = ""
 
@@ -831,27 +831,27 @@ Optcash_Click
 optCash.value = True
 
 optCheckOff.Enabled = False
-txtsno.Visible = False
+txtSNo.Visible = False
 Label1.Visible = False
 End Sub
 
 Private Sub optSupplier_Click()
-txtsno.Visible = True
+txtSNo.Visible = True
 Label1.Visible = True
 optCheckOff.Enabled = True
 
 txtName = ""
-txtsno = ""
+txtSNo = ""
 Label1.Caption = "SNo"
 End Sub
 
 Private Sub opttransport_Click()
-txtsno.Visible = True
+txtSNo.Visible = True
 Label1.Visible = True
 optCheckOff.Enabled = True
 
 txtName = ""
-txtsno = ""
+txtSNo = ""
 Label1.Caption = "Code"
 End Sub
 
@@ -864,7 +864,7 @@ End If
 Enddate = DateSerial(year(DTPicker2), month(DTPicker2) + 1, 1 - 1)
 
 
-Set rs = oSaccoMaster.GetRecordset("SELECT SUM(Amnt) AS Shares From d_Shares WHERE sno = '" & txtsno & "'")
+Set rs = oSaccoMaster.GetRecordset("SELECT SUM(Amnt) AS Shares From d_Shares WHERE sno = '" & txtSNo & "'")
 
 If rs.RecordCount > 0 Then
 lblShares = Format(rs.Fields(0), "0.00")
@@ -872,20 +872,20 @@ Else
 lblShares = "0.00"
 End If
 
-Set rst = oSaccoMaster.GetRecordset("SELECT MaxAmnt From d_MaxShares WHERE IdNo = '" & txtIdNo & "'")
+Set Rst = oSaccoMaster.GetRecordset("SELECT MaxAmnt From d_MaxShares WHERE IdNo = '" & txtIdNo & "'")
 
-If rst.RecordCount > 0 Then
-lblMaxAmnt = Format(rst.Fields(0), "0.00")
+If Rst.RecordCount > 0 Then
+lblMaxAmnt = Format(Rst.Fields(0), "0.00")
 Else
 lblMaxAmnt = 20000
 End If
 
 sql = "SET dateformat dmy SELECT     Code, Name, Sex, Loc, Type, TransDate, Cash, Amnt"
-sql = sql & " From d_Shares WHERE  sNo = '" & txtsno & "'" 'Period = '" & Enddate & "' AND
+sql = sql & " From d_Shares WHERE  sNo = '" & txtSNo & "'" 'Period = '" & Enddate & "' AND
 
 Set rs2 = oSaccoMaster.GetRecordset(sql)
 If rs2.RecordCount > 0 Then
-txtsno = rs2.Fields(0)
+txtSNo = rs2.Fields(0)
 txtName = rs2.Fields(1)
 cboSex = rs2.Fields(2)
 cboLocation = rs2.Fields(3)
@@ -918,13 +918,13 @@ End Sub
 
 Private Sub txtSNo_Validate(Cancel As Boolean)
 
-If Trim(txtsno) = "" Then
+If Trim(txtSNo) = "" Then
 Exit Sub
 End If
 
-If Optsupplier.value = True Then
+If optSupplier.value = True Then
 txtName = ""
-Set rs = oSaccoMaster.GetRecordset("SELECT Names,idno,Location,Type,Regdate FROM d_Suppliers WHERE SNo = '" & txtsno & "'")
+Set rs = oSaccoMaster.GetRecordset("SELECT Names,idno,Location,Type,Regdate FROM d_Suppliers WHERE SNo = '" & txtSNo & "'")
 If Not rs.EOF Then
 txtName = rs.Fields(0).value
 txtIdNo = rs.Fields(1).value
@@ -936,7 +936,7 @@ End If
 
 If optTransport.value = True Then
 txtName = ""
-Set rs = oSaccoMaster.GetRecordset("SELECT TransName FROM d_Transporters WHERE TransCode = '" + txtsno + "'")
+Set rs = oSaccoMaster.GetRecordset("SELECT TransName FROM d_Transporters WHERE TransCode = '" + txtSNo + "'")
 If Not rs.EOF Then txtName = rs.Fields(0).value
 End If
 

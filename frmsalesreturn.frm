@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
 Object = "{86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCT2.OCX"
 Begin VB.Form frmsalesreturn 
    Caption         =   "Sales Return"
@@ -217,7 +217,7 @@ Begin VB.Form frmsalesreturn
       Height          =   315
       ItemData        =   "frmsalesreturn.frx":0330
       Left            =   7320
-      List            =   "frmsalesreturn.frx":033A
+      List            =   "frmsalesreturn.frx":0332
       TabIndex        =   9
       Top             =   1800
       Width           =   1455
@@ -305,7 +305,7 @@ Begin VB.Form frmsalesreturn
       _ExtentX        =   2778
       _ExtentY        =   450
       _Version        =   393216
-      Format          =   119799809
+      Format          =   124321793
       CurrentDate     =   40588
    End
    Begin MSComCtl2.DTPicker txtransdate 
@@ -317,7 +317,7 @@ Begin VB.Form frmsalesreturn
       _ExtentX        =   2355
       _ExtentY        =   661
       _Version        =   393216
-      Format          =   119799809
+      Format          =   124321793
       CurrentDate     =   40265
    End
    Begin MSComctlLib.ListView Lvwitems 
@@ -339,7 +339,7 @@ Begin VB.Form frmsalesreturn
       BorderStyle     =   1
       Appearance      =   1
       MousePointer    =   4
-      MouseIcon       =   "frmsalesreturn.frx":0353
+      MouseIcon       =   "frmsalesreturn.frx":0334
       NumItems        =   6
       BeginProperty ColumnHeader(1) {BDD1F052-858B-11D1-B16A-00C0F0283628} 
          Text            =   "ITEM"
@@ -679,16 +679,23 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Private Sub cboproductname_Change()
-Set rst = oSaccoMaster.GetRecordset("select p_code from ag_products where p_name ='" & cboproductname & "'")
-If Not rst.EOF Then
-txtpcode = rst.Fields("p_code")
+'If Optbranch = True Then
+    If Trim(Cmbstation.Text) = "" Then
+        MsgBox "Please enter the Agrovet Station."
+            Cmbstation.SetFocus
+        Exit Sub
+    End If
+'End If
+Set Rst = oSaccoMaster.GetRecordset("select p_code from ag_products where p_name ='" & cboproductname & "'")
+If Not Rst.EOF Then
+txtpcode = Rst.Fields("p_code")
 End If
 End Sub
 
 Private Sub cboproductname_Click()
-Set rst = oSaccoMaster.GetRecordset("select p_code from ag_products where p_name ='" & cboproductname & "'")
-If Not rst.EOF Then
-txtpcode = rst.Fields("p_code")
+Set Rst = oSaccoMaster.GetRecordset("select p_code from ag_products where p_name ='" & cboproductname & "'")
+If Not Rst.EOF Then
+txtpcode = Rst.Fields("p_code")
 End If
 End Sub
 
@@ -711,7 +718,7 @@ If Not rs.EOF Then
 txtpcode = rs.Fields(0)
 lblbalance = rs.Fields(2)
 'txtserialno = rs.Fields(1)
-txtamount = rs.Fields(3)
+txtAmount = rs.Fields(3)
 
 End If
 End Sub
@@ -732,7 +739,7 @@ End If
  'txtpcode = ""
  'txtserialno = ""
  txtquantity = 0
- txtamount = 0
+ txtAmount = 0
  txtamtreceived = 0
  TXTCHANGE = 0
  TXTTOTAL = 0
@@ -745,40 +752,41 @@ Dim total As Double
 sql = "SELECT     UserLoginID,levels, UserGroup, SUPERUSER From UserAccounts where UserLoginID='" & User & "'"
 Set rs = oSaccoMaster.GetRecordset(sql)
 If Not rs.EOF Then
-If rs!Levels <> "Agrovet" Then
-MsgBox "You are not allowed to sell", vbInformation
-Exit Sub
-
+    If rs!Levels <> "Agrovet" Then
+    MsgBox "You are not allowed to sell", vbInformation
+    Exit Sub
+    
+    End If
 End If
-End If
-If Trim(txtquantity) = "" Then
-MsgBox "Quantity cannot be Zero", vbInformation
-Exit Sub
-End If
-
-    If Optbranch = True Then
-    If Trim(Cmbstation.Text) = "" Then
-        MsgBox "Please enter the Agrovet Station."
-            Cmbstation.SetFocus
+    If Trim(txtquantity) = "" Then
+        MsgBox "Quantity cannot be Zero", vbInformation
     Exit Sub
     End If
-    
-    If optrecieve = True Then
-    If Trim(Cmbstation.Text) = "" Then
-        MsgBox "Please enter the Agrovet Station."
-            Cmbstation.SetFocus
-    Exit Sub
-    End If
-    End If
-    Set rst = oSaccoMaster.GetRecordset("select pprice from ag_products where p_code='" & txtpcode & "'")
-    If Not rst.EOF Then
-    'txtAmount = Rst.Fields("pprice")
-    End If
+
+'   If Optbranch = True Then
+     If Trim(Cmbstation.Text) = "" Then
+         MsgBox "Please enter the Agrovet Station."
+             Cmbstation.SetFocus
+     Exit Sub
     End If
     
+   If Optbranch = True Then
+        If optrecieve = True Then
+            If Trim(Cmbstation.Text) = "" Then
+                MsgBox "Please enter the Agrovet Station."
+                    Cmbstation.SetFocus
+            Exit Sub
+            End If
+        End If
+        Set Rst = oSaccoMaster.GetRecordset("select pprice from ag_products where p_code='" & txtpcode & "'")
+        If Not Rst.EOF Then
+        'txtAmount = Rst.Fields("pprice")
+        End If
+    End If
     
     
-    If opttransport = True Then
+    
+    If optTransport = True Then
     If Trim(txttranscode) = "" Then
         MsgBox "Please enter the Transporter"
     
@@ -795,8 +803,8 @@ End If
         Exit Sub
     End If
     
-If txtamount = "" Then
-txtamount = 0
+If txtAmount = "" Then
+txtAmount = 0
 End If
 Provider = "maziwa"
 Set cn = New ADODB.Connection
@@ -832,13 +840,13 @@ j = 1
             
     If Lvwitems.SelectedItem = txtpcode Then
         txtquantity = (CCur(txtquantity) + CCur(Lvwitems.SelectedItem.ListSubItems(2)))
-        Lvwitems.ListItems.Remove (Lvwitems.SelectedItem.index)
+        Lvwitems.ListItems.Remove (Lvwitems.SelectedItem.Index)
                         
         Set li = Lvwitems.ListItems.Add(, , txtpcode)
                         li.SubItems(1) = cboproductname & ""
                         li.SubItems(2) = txtquantity & ""
-                        li.SubItems(3) = txtamount & ""
-                        li.SubItems(4) = CCur(txtamount) * CCur(txtquantity) & ""
+                        li.SubItems(3) = txtAmount & ""
+                        li.SubItems(4) = CCur(txtAmount) * CCur(txtquantity) & ""
                         li.SubItems(5) = cash
                         'Total = CCur(Total + li.SubItems(4))
                         TXTTOTAL = total
@@ -865,8 +873,8 @@ j = 1
     Set li = Lvwitems.ListItems.Add(, , txtpcode)
                         li.SubItems(1) = cboproductname & ""
                         li.SubItems(2) = txtquantity & ""
-                        li.SubItems(3) = txtamount & ""
-                        li.SubItems(4) = CCur(txtamount) * (CCur(txtquantity)) & ""
+                        li.SubItems(3) = txtAmount & ""
+                        li.SubItems(4) = CCur(txtAmount) * (CCur(txtquantity)) & ""
                         li.SubItems(5) = cash
                         'Total = CCur(Total + li.SubItems(4))
                         TXTTOTAL = total
@@ -882,8 +890,8 @@ j = 1
      Set li = Lvwitems.ListItems.Add(, , txtpcode)
                         li.SubItems(1) = cboproductname & ""
                         li.SubItems(2) = txtquantity & ""
-                        li.SubItems(3) = txtamount & ""
-                        li.SubItems(4) = CCur(txtamount) * (CCur(txtquantity)) & ""
+                        li.SubItems(3) = txtAmount & ""
+                        li.SubItems(4) = CCur(txtAmount) * (CCur(txtquantity)) & ""
                         li.SubItems(5) = cash
                         'Total = CCur(Total + li.SubItems(4))
                         TXTTOTAL = total
@@ -922,7 +930,14 @@ End Sub
 Private Sub cmdsave_Click()
 On Error GoTo HEREEE
 
-If opttransport = True Then
+'   If Optbranch = True Then
+    If Trim(Cmbstation.Text) = "" Then
+        MsgBox "Please enter the Agrovet Station."
+            Cmbstation.SetFocus
+    Exit Sub
+    End If
+
+If optTransport = True Then
 savetransporters
 Exit Sub
 End If
@@ -1129,7 +1144,7 @@ Dim ttt
              Dim fso, chkPrinter, txtFile
         'ttt = "LPT1" 'LPT1
          Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -1173,7 +1188,7 @@ Lvwitems.ListItems.Clear
 txtrno = ""
 txtpcode.Text = ""
 txtquantity = ""
-txtamount = ""
+txtAmount = ""
 Cmbstation.Text = ""
 
 MsgBox "Record saved Successfully"
@@ -1190,7 +1205,7 @@ On Error GoTo ErrorHandler
 TXTTOTAL = 0
 'If Lvwitems.ListItems.Count > 0 Then
 ''Total = CCur(txttotal - li.SubItems(4))
-Lvwitems.ListItems.Remove (Lvwitems.SelectedItem.index)  '// removes the selected item
+Lvwitems.ListItems.Remove (Lvwitems.SelectedItem.Index)  '// removes the selected item
 
 Do While Not j > (Lvwitems.ListItems.Count)
 'For j = 1 To Lvwitems.ListItems.Count
@@ -1207,25 +1222,34 @@ MsgBox err.description
 End Sub
 
 Private Sub Form_Load()
-Label5.Visible = False
-txttranscode.Visible = False
-lbltransportername.Visible = False
-Label10.Visible = False
-lbltransnetpay.Visible = False
-txtransdate = Format(Date, "dd/mm/yyyy")
+    Label5.Visible = False
+    txttranscode.Visible = False
+    lbltransportername.Visible = False
+    Label10.Visible = False
+    lbltransnetpay.Visible = False
+    txtransdate = Format(Date, "dd/mm/yyyy")
+    
+    Provider = "MAZIWA"
+    Set cn = New ADODB.Connection
+    cn.Open Provider, "bi"
+    'If reportpath = "" Then reportpath = GetSetting("payroll", "AppName", "rptPath", rptPath)
+    sql = "select P_NAME  from ag_products ORDER BY P_NAME ASC"
+    Set rs = New ADODB.Recordset
+    rs.Open sql, cn
+    
+    While Not rs.EOF
+    cboproductname.AddItem rs.Fields(0)
+    rs.MoveNext
+    Wend
 
-Provider = "MAZIWA"
-Set cn = New ADODB.Connection
-cn.Open Provider, "bi"
-'If reportpath = "" Then reportpath = GetSetting("payroll", "AppName", "rptPath", rptPath)
-sql = "select P_NAME  from ag_products ORDER BY P_NAME ASC"
-Set rs = New ADODB.Recordset
-rs.Open sql, cn
+    Set Rst = New Recordset
+    sql = "Select BName from d_Branch order by BName asc"
+    Set Rst = oSaccoMaster.GetRecordset(sql)
+    While Not Rst.EOF
+     Cmbstation.AddItem Rst.Fields(0)
+    Rst.MoveNext
+    Wend
 
-While Not rs.EOF
-cboproductname.AddItem rs.Fields(0)
-rs.MoveNext
-Wend
 cboproductname.Enabled = True
 chkPrint.value = vbChecked
 End Sub
@@ -1329,7 +1353,7 @@ Label8.Visible = False
 End Sub
 
 Private Sub opttransport_Click()
-If opttransport = True Then
+If optTransport = True Then
 Label5.Visible = True
 txttranscode.Visible = True
 lbltransportername.Visible = True
@@ -1399,7 +1423,7 @@ cboproductname_Validate True
 End If
 End Sub
 
-Private Sub txtpcode_Change()
+Private Sub txtpcode_change()
 
 If KeyAscii = 13 Then
 Provider = "MAZIWA"
@@ -1441,7 +1465,7 @@ End If
 Startdate = DateSerial(year(txtransdate), month(txtransdate), 1)
 Enddate = DateSerial(year(txtransdate), month(txtransdate) + 1, 1 - 1)
 
-Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet " & txtSNo & ",'" & Startdate & "','" & Enddate & "', 0")
+Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet '" & txtSNo & "','" & Startdate & "','" & Enddate & "', 0")
 
 If Not rs.EOF Then
 lblTKgs = IIf(IsNull(rs.Fields(0)), 0, rs.Fields(0))
@@ -1452,7 +1476,7 @@ End If
 
 
 
-Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet " & txtSNo & ",'" & Startdate & "','" & Enddate & "', 1")
+Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet '" & txtSNo & "','" & Startdate & "','" & Enddate & "', 1")
 If Not IsNull(rs.Fields(0)) Then
 lblDed = rs.Fields(0)
 Else
@@ -1495,13 +1519,13 @@ End Sub
 Private Sub savetransporters()
 On Error GoTo kiparu2
 
-If opttransport = True Then
+If optTransport = True Then
     If txttranscode = "" Then
       MsgBox "Please enter the transporter"
     Exit Sub
 End If
 
-Set rst = New Recordset
+Set Rst = New Recordset
 Dim a, b, X
 DIA = 0
 Dim U As Double, S As Double
@@ -1566,20 +1590,29 @@ Remain = rsinstock.Fields(1) + CInt(Lvwitems.SelectedItem.SubItems(2))
 
 
 sql = ""
-sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo,Branch) VALUES ("
+sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo,Remarks,Branch) VALUES ("
 sql = sql & txtrno & ",'" & Lvwitems.SelectedItem & "','" & txtransdate & "'," & -1 * Lvwitems.SelectedItem.SubItems(4)
-sql = sql & "," & Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & txttranscode & "','" & Cmbstation & "')"
+sql = sql & "," & -1 * Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & txttranscode & "','Sales Return','" & Cmbstation & "')"
 
 oSaccoMaster.ExecuteThis (sql)
 sql = ""
 sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts3(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo) VALUES ("
 sql = sql & txtrno & ",'" & Lvwitems.SelectedItem & "','" & txtransdate & "'," & -1 * Lvwitems.SelectedItem.SubItems(4)
-sql = sql & "," & Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & txttranscode & "')"
+sql = sql & "," & -1 * Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & txttranscode & "')"
 
 oSaccoMaster.ExecuteThis (sql)
 oSaccoMaster.ExecuteThis ("Update ag_Products SET Qout =" & CCur(Remain) & " WHERE p_code= '" & Lvwitems.SelectedItem & "'")
 'j = j + 1
 'Loop
+
+ '''insert table for products checking
+    sql = ""
+    sql = "set dateformat dmy insert into  ag_products1(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
+    sql = sql & "  values('" & Lvwitems.SelectedItem & "','" & Lvwitems.SelectedItem.SubItems(1) & "','" & txttranscode & "','" & -1 * Lvwitems.SelectedItem.SubItems(2) & "',"
+    sql = sql & " '" & -1 * Lvwitems.SelectedItem.SubItems(2) & "','" & txtransdate & "','" & txtransdate & "','Admin','" & Date & "','" & -1 * Lvwitems.SelectedItem.SubItems(2) & "','SALES','0','0','0','0','" & Lvwitems.SelectedItem.SubItems(3) & "','" & Cmbstation & "')"
+    oSaccoMaster.ExecuteThis (sql)
+'''end
+
     sql = ""
     sql = "set dateformat dmy insert into gltransactions(transdate,amount,draccno,craccno,documentno,source,transdescript,auditid,cash,doc_posted) values('" & txtransdate & "'," & Lvwitems.SelectedItem.SubItems(4) & ",'I005','A007','" & Lvwitems.SelectedItem & "','" & cboproductname & "' ,'TRANSPORTERS SALES','" & User & "',0,0)"
     oSaccoMaster.ExecuteThis (sql)
@@ -1588,7 +1621,7 @@ Next j
 '//Update deductions
 If optCash.value = False Then
 Set cn = New ADODB.Connection
-sql = "d_sp_TransDeduct '" & txttranscode & "','" & txtransdate & "','Agrovet'," & -1 * total & ",'" & Startdate & "','" & Enddate & "','" & User & "','" & txtcomment & "'"
+sql = "d_sp_TransDeduct '" & txttranscode & "','" & txtransdate & "','Agrovet'," & -1 * total & ",'" & Startdate & "','" & Enddate & "','" & User & "','" & txtComment & "'"
 oSaccoMaster.ExecuteThis (sql)
 End If
 
@@ -1638,7 +1671,7 @@ Dim ttt
         escFeedAndCut = Chr(29) + Chr(86) + Chr(65) '//Partial cut and feed
        Dim fso, chkPrinter, txtFile
         Dim PORT As String
-        PORT = ports
+        PORT = Ports
         ttt = PORT 'LPT1
         
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -1695,7 +1728,7 @@ txtpcode.Text = ""
 'txtserialno = ""
 lbltransnetpay = ""
 txtquantity = ""
-txtamount = ""
+txtAmount = ""
 
 MsgBox "Records saved"
 Exit Sub
@@ -1755,16 +1788,24 @@ Remain = rsinstock.Fields(1) + CInt(Lvwitems.SelectedItem.SubItems(2))
 sql = ""
 sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo,Remarks,Branch) VALUES ("
 sql = sql & txtrno & ",'" & Lvwitems.SelectedItem & "','" & txtransdate & "'," & -1 * Lvwitems.SelectedItem.SubItems(4)
-sql = sql & "," & Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & C & "','Sales Return','" & Cmbstation & "')"
+sql = sql & "," & -1 * Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & C & "','Sales Return','" & Cmbstation & "')"
 
 oSaccoMaster.ExecuteThis (sql)
 sql = ""
 sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts3(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo,Remarks) VALUES ("
 sql = sql & txtrno & ",'" & Lvwitems.SelectedItem & "','" & txtransdate & "'," & -1 * Lvwitems.SelectedItem.SubItems(4)
-sql = sql & "," & Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & C & "','Sales Return')"
+sql = sql & "," & -1 * Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & C & "','Sales Return')"
 
 oSaccoMaster.ExecuteThis (sql)
 oSaccoMaster.ExecuteThis ("Update ag_Products SET Qout =" & CCur(Remain) & " WHERE p_code= '" & Lvwitems.SelectedItem & "'")
+
+     '''insert table for products checking
+        sql = ""
+        sql = "set dateformat dmy insert into  ag_products1(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
+        sql = sql & "  values('" & Lvwitems.SelectedItem & "','" & Lvwitems.SelectedItem.SubItems(1) & "','" & C & "','" & -1 * Lvwitems.SelectedItem.SubItems(2) & "',"
+        sql = sql & " '" & -1 * Lvwitems.SelectedItem.SubItems(2) & "','" & txtransdate & "','" & txtransdate & "','Admin','" & Date & "','" & -1 * Lvwitems.SelectedItem.SubItems(2) & "','SALES','0','0','0','0','" & Lvwitems.SelectedItem.SubItems(3) & "','" & Cmbstation & "')"
+        oSaccoMaster.ExecuteThis (sql)
+    '''end
 
 '\\ save to gl
 
@@ -1817,7 +1858,7 @@ Dim ttt
        Dim fso, chkPrinter, txtFile
         'ttt = "LPT1" 'LPT1
          Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -1882,7 +1923,7 @@ Lvwitems.ListItems.Clear
 txtrno = ""
 txtpcode.Text = ""
 txtquantity = ""
-txtamount = ""
+txtAmount = ""
 
 MsgBox "Record saved Successfully"
 Exit Sub
@@ -1955,19 +1996,29 @@ Remain = rsinstock.Fields(1) + CInt(Lvwitems.SelectedItem.SubItems(2))
 sql = ""
 sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo,Remarks,Branch) VALUES ("
 sql = sql & txtrno & ",'" & Lvwitems.SelectedItem & "','" & txtransdate & "'," & -1 * Lvwitems.SelectedItem.SubItems(4)
-sql = sql & "," & Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & "," & txtSNo & ",'Sales Return','" & Cmbstation & "')"
+sql = sql & "," & -1 * Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & "," & txtSNo & ",'Sales Return','" & Cmbstation & "')"
 
 oSaccoMaster.ExecuteThis (sql)
 sql = ""
 sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts3(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo,Remarks) VALUES ("
 sql = sql & txtrno & ",'" & Lvwitems.SelectedItem & "','" & txtransdate & "'," & -1 * Lvwitems.SelectedItem.SubItems(4)
-sql = sql & "," & Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & "," & txtSNo & ",'Sales Return')"
+sql = sql & "," & -1 * Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & "," & txtSNo & ",'Sales Return')"
 
 oSaccoMaster.ExecuteThis (sql)
 oSaccoMaster.ExecuteThis ("Update ag_Products SET Qout =" & CCur(Remain) & " WHERE p_code= '" & Lvwitems.SelectedItem & "'")
 '//XXXXXXXXXXXXXXX
+
+     '''insert table for products checking
+        sql = ""
+        sql = "set dateformat dmy insert into  ag_products1(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
+        sql = sql & "  values('" & Lvwitems.SelectedItem & "','" & Lvwitems.SelectedItem.SubItems(1) & "','" & txtSNo & "','" & -1 * Lvwitems.SelectedItem.SubItems(2) & "',"
+        sql = sql & " '" & -1 * Lvwitems.SelectedItem.SubItems(2) & "','" & txtransdate & "','" & txtransdate & "','Admin','" & Date & "','" & -1 * Lvwitems.SelectedItem.SubItems(2) & "','SALES','0','0','0','0','" & Lvwitems.SelectedItem.SubItems(3) & "','" & Cmbstation & "')"
+        oSaccoMaster.ExecuteThis (sql)
+    '''end
+
+
     sql = ""
-    sql = "set dateformat dmy insert into gltransactions(transdate,amount,draccno,craccno,documentno,source,transdescript,auditid,cash,doc_posted) values('" & txtransdate & "'," & Lvwitems.SelectedItem.SubItems(4) & ",'A005','I002','" & Lvwitems.SelectedItem & "','" & cboproductname & "' ,' CHECK OFF SALES ','" & User & "',0,0)"
+    sql = "set dateformat dmy insert into gltransactions(transdate,amount,draccno,craccno,documentno,source,transdescript,auditid,cash,doc_posted) values('" & txtransdate & "'," & -1 * Lvwitems.SelectedItem.SubItems(4) & ",'A005','I002','" & Lvwitems.SelectedItem & "','" & cboproductname & "' ,' CHECK OFF SALES ','" & User & "',0,0)"
     oSaccoMaster.ExecuteThis (sql)
 
 
@@ -1984,14 +2035,14 @@ sql = "d_sp_SupplierDeduct " & txtSNo & ",'" & txtransdate & "','Agrovet'," & -1
 oSaccoMaster.ExecuteThis (sql)
 End If
 
-If CDbl(txtamtreceived) > 0 Then
-    '******Deduct Amount paid in cash
-   
-    amount = 0
-    amount = CDbl(txtamtreceived)
-    sql = "d_sp_SupplierDeduct " & txtSNo & ",'" & txtransdate & "','Agrovet'," & -1 * amount & ",'" & Startdate & "','" & Enddate & "'," & year(txtransdate) & ",'" & User & "','Cash','" & Cmbstation & "'"
-oSaccoMaster.ExecuteThis (sql)
-End If
+'If CDbl(txtamtreceived) > 0 Then
+'    '******Deduct Amount paid in cash
+'
+'    amount = 0
+'    amount = CDbl(txtamtreceived)
+'    sql = "d_sp_SupplierDeduct " & txtSNo & ",'" & txtransdate & "','Agrovet'," & -1 * amount & ",'" & Startdate & "','" & Enddate & "'," & year(txtransdate) & ",'" & User & "','Cash','" & Cmbstation & "'"
+'oSaccoMaster.ExecuteThis (sql)
+'End If
 
 '//Update deductions
 If chkPrint.value = vbChecked Then
@@ -2033,7 +2084,7 @@ Dim ttt
        Dim fso, chkPrinter, txtFile
         'ttt = "LPT1" 'LPT1
          Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -2084,7 +2135,7 @@ End If
 Lvwitems.ListItems.Clear
 txtpcode.Text = ""
 txtquantity = ""
-txtamount = ""
+txtAmount = ""
 cboproductname = ""
 txtrno = ""
 'txtSNo = ""
@@ -2162,13 +2213,20 @@ Exit Sub
 End If
 
 sql = ""
-sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo,Branch) VALUES ("
+sql = sql & "SET dateformat DMY INSERT INTO ag_Receipts(R_No, P_code, T_Date, Amount, Qua, S_Bal, user_id, Cash, SNo,Remarks,Branch) VALUES ("
 sql = sql & txtrno & ",'" & Lvwitems.SelectedItem & "','" & txtransdate & "'," & -1 * Lvwitems.SelectedItem.SubItems(4)
-sql = sql & "," & Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & C & "','" & Cmbstation & "')"
+sql = sql & "," & -1 * Lvwitems.SelectedItem.SubItems(2) & "," & Remain & ",'" & User & "'," & Lvwitems.SelectedItem.SubItems(5) & ",'" & C & "','Sales Return','" & Cmbstation & "')"
 
 oSaccoMaster.ExecuteThis (sql)
 oSaccoMaster.ExecuteThis ("Update ag_Products SET Qout =" & CCur(Remain) & " WHERE p_code= '" & Lvwitems.SelectedItem & "'")
 
+     '''insert table for products checking
+        sql = ""
+        sql = "set dateformat dmy insert into  ag_products1(p_code,p_name,s_no,qin,qout,date_entered,last_d_updated,user_id,audit_date,o_bal,supplierid,serialized,unserialized,seria,pprice,sprice,Branch )"
+        sql = sql & "  values('" & Lvwitems.SelectedItem & "','" & Lvwitems.SelectedItem.SubItems(1) & "','" & C & "','" & -1 * Lvwitems.SelectedItem.SubItems(2) & "',"
+        sql = sql & " '" & -1 * Lvwitems.SelectedItem.SubItems(2) & "','" & txtransdate & "','" & txtransdate & "','Admin','" & Date & "','" & -1 * Lvwitems.SelectedItem.SubItems(2) & "','SALES','0','0','0','0','" & Lvwitems.SelectedItem.SubItems(3) & "','" & Cmbstation & "')"
+        oSaccoMaster.ExecuteThis (sql)
+    '''end
 
     sql = ""
     sql = "set dateformat dmy insert into gltransactions(transdate,amount,draccno,craccno,documentno,source,transdescript,auditid,cash,doc_posted) values('" & txtransdate & "'," & Lvwitems.SelectedItem & ",'A006','I004','" & Lvwitems.SelectedItem & "','" & cboproductname & "' ,'" & C & "','" & User & "',0,0)"
@@ -2214,7 +2272,7 @@ Dim ttt
        Dim fso, chkPrinter, txtFile
         'ttt = "LPT1" 'LPT1
          Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -2285,7 +2343,7 @@ Lvwitems.ListItems.Clear
 txtrno = ""
 txtpcode.Text = ""
 txtquantity = ""
-txtamount = ""
+txtAmount = ""
 
 MsgBox "Record saved Successfully"
 Exit Sub
@@ -2410,7 +2468,7 @@ Dim ttt
        Dim fso, chkPrinter, txtFile
         'ttt = "LPT1" 'LPT1
          Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -2481,7 +2539,7 @@ Lvwitems.ListItems.Clear
 txtrno = ""
 txtpcode.Text = ""
 txtquantity = 1
-txtamount = ""
+txtAmount = ""
 
 MsgBox "Record saved Successfully"
 Exit Sub
@@ -2652,7 +2710,7 @@ Dim ttt
        Dim fso, chkPrinter, txtFile
         'ttt = "LPT1" 'LPT1
          Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -2695,7 +2753,7 @@ Dim ttt
         txtFile.WriteLine "RECEIPT TOTAL" & vbTab & vbTab & Format(TXTTOTAL, "#,##0.00") & vbNewLine
         txtFile.WriteLine "======================================="
         txtFile.WriteLine
-        txtFile.WriteLine "Remarks" & vbTab & txtcomment
+        txtFile.WriteLine "Remarks" & vbTab & txtComment
         txtFile.WriteLine
         txtFile.WriteLine "YOU WERE SERVED By " & UCase(username)
         txtFile.WriteLine "    Date :" & Format(Get_Server_Date, "dd/mm/yyyy HH:MM:SS AM/PM")
@@ -2709,9 +2767,9 @@ Lvwitems.ListItems.Clear
 txtrno = ""
 txtpcode.Text = ""
 txtquantity = 1
-txtamount = ""
+txtAmount = ""
 Cmbstation.Text = ""
-txtcomment = ""
+txtComment = ""
 MsgBox "Record saved Successfully"
 Exit Sub
 kiparu:

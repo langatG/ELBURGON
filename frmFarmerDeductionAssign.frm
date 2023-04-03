@@ -17,7 +17,7 @@ Begin VB.Form frmFarmerDeductionAssign
       Height          =   315
       ItemData        =   "frmFarmerDeductionAssign.frx":0000
       Left            =   120
-      List            =   "frmFarmerDeductionAssign.frx":000A
+      List            =   "frmFarmerDeductionAssign.frx":0002
       TabIndex        =   22
       Top             =   2400
       Width           =   3015
@@ -33,9 +33,9 @@ Begin VB.Form frmFarmerDeductionAssign
          Strikethrough   =   0   'False
       EndProperty
       Height          =   330
-      ItemData        =   "frmFarmerDeductionAssign.frx":002C
+      ItemData        =   "frmFarmerDeductionAssign.frx":0004
       Left            =   120
-      List            =   "frmFarmerDeductionAssign.frx":002E
+      List            =   "frmFarmerDeductionAssign.frx":0006
       TabIndex        =   21
       Top             =   1560
       Width           =   1815
@@ -127,7 +127,7 @@ Begin VB.Form frmFarmerDeductionAssign
    Begin VB.PictureBox Picture5 
       Height          =   255
       Left            =   1680
-      Picture         =   "frmFarmerDeductionAssign.frx":0030
+      Picture         =   "frmFarmerDeductionAssign.frx":0008
       ScaleHeight     =   195
       ScaleWidth      =   195
       TabIndex        =   0
@@ -143,7 +143,7 @@ Begin VB.Form frmFarmerDeductionAssign
       _ExtentX        =   2778
       _ExtentY        =   450
       _Version        =   393216
-      Format          =   119930881
+      Format          =   50855937
       CurrentDate     =   40096
    End
    Begin MSComCtl2.DTPicker DTPStartDate 
@@ -155,7 +155,7 @@ Begin VB.Form frmFarmerDeductionAssign
       _ExtentX        =   2990
       _ExtentY        =   450
       _Version        =   393216
-      Format          =   119930881
+      Format          =   50855937
       CurrentDate     =   40096
    End
    Begin MSComCtl2.DTPicker DTPDDeduction 
@@ -167,7 +167,7 @@ Begin VB.Form frmFarmerDeductionAssign
       _ExtentX        =   2778
       _ExtentY        =   450
       _Version        =   393216
-      Format          =   119930881
+      Format          =   50855937
       CurrentDate     =   40096
    End
    Begin VB.Label Label9 
@@ -311,13 +311,13 @@ txtAmount.Locked = False
 txtSNo.Locked = False
 cboDeductionType.Locked = False
 
-cmdSave.Enabled = True
+cmdsave.Enabled = True
 cmdNew.Enabled = False
 
 'DTPDDeduction = Format(Get_Server_Date, "DD/MM/YYYY hh:mm:ss")
 DTPDDeduction = Format(Get_Server_Date, "DD/MM/YYYY")
-DTPStartDate = Format(Get_Server_Date, "dd/mm/yyyy")
-DTPEndDate = DateSerial(year(DTPStartDate), month(DTPStartDate) + 1, 1 - 1)
+DTPstartdate = Format(Get_Server_Date, "dd/mm/yyyy")
+DTPenddate = DateSerial(year(DTPstartdate), month(DTPstartdate) + 1, 1 - 1)
 
 End Sub
 
@@ -342,40 +342,40 @@ Startdate = DateSerial(year(DTPDDeduction), month(DTPDDeduction), 1)
 Enddate = DateSerial(year(DTPDDeduction), month(DTPDDeduction) + 1, 1 - 1)
 'DTPDDeduction=
 If txtSNo = "" Then Exit Sub
-Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet " & txtSNo & ",'" & Startdate & "','" & Enddate & "', 0")
-If Not rs.EOF Then
- If Not IsNull(rs.Fields(1)) Then
-    If Not IsNull(rs.Fields(1)) Then
-    NetP = IIf(IsNull(rs.Fields(1)), 0, rs.Fields(1))
+    Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet " & txtSNo & ",'" & Startdate & "','" & Enddate & "', 0")
+    If Not rs.EOF Then
+         If Not IsNull(rs.Fields(1)) Then
+            If Not IsNull(rs.Fields(1)) Then
+                NetP = IIf(IsNull(rs.Fields(1)), 0, rs.Fields(1))
+            Else
+                NetP = "0.00"
+            End If
+        
+            Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet " & txtSNo & ",'" & Startdate & "','" & Enddate & "', 1")
+            If Not IsNull(rs.Fields(0)) Then
+                NetP = NetP - rs.Fields(0)
+            Else
+                NetP = NetP - 0
+            End If
+        
+            If NetP < CCur(txtAmount) Then
+                 'ans = MsgBox("The supplier number " & txtSNo & " has; " & vbNewLine & "Gross pay of " & Format((NetP + rs.Fields(0)), "#,##0.00") & vbNewLine & " Total Deductios " & Format(rs.Fields(0), "#,##0.00") & vbNewLine & "NetPay " & Format(NetP, "#,##0.00") & "." & vbNewLine & "You Can Continue anyway?", vbInformation, "LESS NET AMOUNT")
+                 
+                 'If ans = vbNo Then
+                 'Exit Sub
+                 'End If
+                 
+                 'If ans = vbYes Then
+                 'MsgBox "Please let the supplier apply an amount less or equal to " & Format(rs.Fields("NPay"), "#,##0.00") & ""
+                 'txtamount.SetFocus
+                 'Exit Sub
+                 'End If
+             End If
+          End If
     Else
-    NetP = "0.00"
-    End If
-
-    Set rs = oSaccoMaster.GetRecordset("d_sp_SupNet " & txtSNo & ",'" & Startdate & "','" & Enddate & "', 1")
-    If Not IsNull(rs.Fields(0)) Then
-    NetP = NetP - rs.Fields(0)
-    Else
-    NetP = NetP - 0
-    End If
-
-    If NetP < CCur(txtAmount) Then
-         'ans = MsgBox("The supplier number " & txtSNo & " has; " & vbNewLine & "Gross pay of " & Format((NetP + rs.Fields(0)), "#,##0.00") & vbNewLine & " Total Deductios " & Format(rs.Fields(0), "#,##0.00") & vbNewLine & "NetPay " & Format(NetP, "#,##0.00") & "." & vbNewLine & "You Can Continue anyway?", vbInformation, "LESS NET AMOUNT")
-         
-         'If ans = vbNo Then
-         'Exit Sub
-         'End If
-         
-         'If ans = vbYes Then
-         'MsgBox "Please let the supplier apply an amount less or equal to " & Format(rs.Fields("NPay"), "#,##0.00") & ""
-         'txtamount.SetFocus
-         'Exit Sub
-         'End If
-     End If
-  End If
-Else
-'MsgBox "There is no record for supplier number " & txtSNo & " for period ending " & DateSerial(year(DTPDDeduction), month(DTPDDeduction) + 1, 1 - 1) & ""
-'txtSNo.SetFocus
-'Exit Sub
+        MsgBox "There is no record for supplier number " & txtSNo & " for period ending " & DateSerial(year(DTPDDeduction), month(DTPDDeduction) + 1, 1 - 1) & ""
+        txtSNo.SetFocus
+    Exit Sub
 End If
 'End If
 
@@ -417,7 +417,7 @@ End If
 '//Update deductions
 Set cn = New ADODB.Connection
 'DTPDDeduction = Format(Get_Server_Date, "DD/MM/YYYY hh:mm:ss")
-sql = "d_sp_SupplierDeduct " & txtSNo & ",'" & DTPDDeduction & "','" & DESCR & "'," & txtAmount & ",'" & DTPStartDate & "','" & DTPEndDate & "'," & year(DTPEndDate) & ",'" & User & "','" & txtRemarks & "','" & cbobranches & "'"
+sql = "d_sp_SupplierDeduct " & txtSNo & ",'" & DTPDDeduction & "','" & DESCR & "'," & txtAmount & ",'" & DTPstartdate & "','" & DTPenddate & "'," & year(DTPenddate) & ",'" & User & "','" & txtRemarks & "','" & cbobranches & "'"
 oSaccoMaster.ExecuteThis (sql)
 
 'UPDATE Shares Chekoff
@@ -525,10 +525,10 @@ End If
 Dim txtTCHPBalances As Double
 If UCase(Trim(cboDeductionType)) = UCase("Shares") Then
 
-Set rst = New ADODB.Recordset
+Set Rst = New ADODB.Recordset
 sql = "select bal from d_shares where sno= '" & txtSNo & "'"
-Set rst = oSaccoMaster.GetRecordset(sql)
-If Not rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset(sql)
+If Not Rst.EOF Then
 'txtTCHPBalances = Rst.Fields(0)
 
  '//get the balance
@@ -611,8 +611,8 @@ Private Sub Combo1_Change()
 End Sub
 
 Private Sub DTPDDeduction_Change()
-DTPStartDate = DateSerial(year(DTPDDeduction), month(DTPDDeduction), 1)
-DTPEndDate = DateSerial(year(DTPDDeduction), month(DTPDDeduction) + 1, 1 - 1)
+DTPstartdate = DateSerial(year(DTPDDeduction), month(DTPDDeduction), 1)
+DTPenddate = DateSerial(year(DTPDDeduction), month(DTPDDeduction) + 1, 1 - 1)
 
 End Sub
 
@@ -632,14 +632,14 @@ txtSNo.Locked = True
 cboDeductionType.Locked = True
 
 cmdNew.Enabled = True
-cmdSave.Enabled = False
+cmdsave.Enabled = False
 cmdEdit.Enabled = False
-cmdDelete.Enabled = False
+Cmddelete.Enabled = False
 
 'DTPDDeduction = Format(Get_Server_Date, "DD/MM/YYYY hh:mm:ss")
-DTPStartDate = DateSerial(year(DTPDDeduction), month(DTPDDeduction), 1)
+DTPstartdate = DateSerial(year(DTPDDeduction), month(DTPDDeduction), 1)
 'DTPStartDate = Format(Get_Server_Date, "dd/mm/yyyy")
-DTPEndDate = DateSerial(year(DTPStartDate), month(DTPStartDate) + 1, 1 - 1)
+DTPenddate = DateSerial(year(DTPstartdate), month(DTPstartdate) + 1, 1 - 1)
 
     cboDeductionType.Clear
     Set myclass = New cdbase
@@ -668,7 +668,13 @@ DTPEndDate = DateSerial(year(DTPStartDate), month(DTPStartDate) + 1, 1 - 1)
 
     End With
     
-
+    Set Rst = New Recordset
+    sql = "Select BName from d_Branch order by BName asc"
+    Set Rst = oSaccoMaster.GetRecordset(sql)
+    While Not Rst.EOF
+     cbobranches.AddItem Rst.Fields(0)
+    Rst.MoveNext
+    Wend
 
 End Sub
 

@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "mscomctl.ocx"
+Object = "{831FDD16-0C5C-11D2-A9FC-0000F8754DA1}#2.1#0"; "MSCOMCTL.OCX"
 Object = "{86CF1D34-0C5F-11D2-A9FC-0000F8754DA1}#2.0#0"; "MSCOMCT2.OCX"
 Begin VB.MDIForm MainForm 
    Appearance      =   0  'Flat
@@ -29,6 +29,10 @@ Begin VB.MDIForm MainForm
       TabIndex        =   2
       Top             =   0
       Width           =   12870
+      Begin VB.Timer Timer2 
+         Left            =   1560
+         Top             =   1920
+      End
       Begin VB.Timer Timer1 
          Enabled         =   0   'False
          Interval        =   1000
@@ -124,7 +128,7 @@ Begin VB.MDIForm MainForm
          _ExtentX        =   2566
          _ExtentY        =   661
          _Version        =   393216
-         Format          =   131137537
+         Format          =   120324097
          UpDown          =   -1  'True
          CurrentDate     =   40095
       End
@@ -593,7 +597,7 @@ Begin VB.MDIForm MainForm
          Caption         =   "Transfer Of Kilos"
       End
       Begin VB.Menu mnubprocess 
-         Caption         =   "Bonus Processing"
+         Caption         =   "Bonus & Shares Processing"
       End
       Begin VB.Menu mnuagrovettools 
          Caption         =   "Agrovet Tools"
@@ -869,6 +873,9 @@ Begin VB.MDIForm MainForm
          Begin VB.Menu mnuallsalea 
             Caption         =   "All Sales"
          End
+         Begin VB.Menu mnudetailrep 
+            Caption         =   "Detail Sales Report"
+         End
          Begin VB.Menu mnuagrcashsales 
             Caption         =   "Cash Sales"
          End
@@ -929,6 +936,9 @@ Begin VB.MDIForm MainForm
       End
       Begin VB.Menu mnuSpecificDed 
          Caption         =   "Specific Deduction Report"
+      End
+      Begin VB.Menu mnubonusre 
+         Caption         =   "Bonus Report"
       End
       Begin VB.Menu mnuGeneralsharesreport 
          Caption         =   "General shares report"
@@ -1077,8 +1087,8 @@ dismenu
 Dim rmenu As String
 'Dim rmenu As String
 Dim x1 As String
-Dim Rs1 As New ADODB.Recordset
-
+Dim Rs1, rsReb As New ADODB.Recordset
+Timer2.Enabled = True
 sql = "select alias from tbl_menus order by id"
 Set rs = oSaccoMaster.GetRecordset(sql)
 While Not rs.EOF
@@ -1124,6 +1134,15 @@ mnuSetUp.Enabled = True
 mnuReports.Enabled = True
 
 'End If
+
+If UCase(User) = "BEATRICE" Or LCase(User) = "psigei" Then
+   Timer2.Enabled = True
+    Set rsReb = oSaccoMaster.GetRecordset("d_sp_sqlCompresser")
+    Timer2.Enabled = False
+Else
+   Timer2.Enabled = False
+End If
+
 
 dtpPeriod = Format(Get_Server_Date, "mmm/yyyy")
 End Sub
@@ -1244,6 +1263,11 @@ End Sub
 
 Private Sub mnubonuspricings_Click()
 frmpriceBonus.Show vbModal
+End Sub
+
+Private Sub mnubonusre_Click()
+    reportname = "Bonus Report.rpt"
+    Show_Sales_Crystal_Report STRFORMULA, reportname, ""
 End Sub
 
 Private Sub mnuBonusstatement_Click()
@@ -1394,6 +1418,12 @@ Private Sub mnudispatch_Click()
    reportname = "d_controlreport2.rpt"
    Show_Sales_Crystal_Report "", reportname, ""
 End Sub
+
+Private Sub mnudetailrep_Click()
+    reportname = "DetailedSalesReport.rpt"
+    Show_Sales_Crystal_Report STRFORMULA, reportname, ""
+End Sub
+
 Private Sub mnudispatchstock_Click()
 reportname = "Transfer agrovet sales1.rpt"
     Show_Sales_Crystal_Report STRFORMULA, reportname, ""
@@ -2890,4 +2920,10 @@ End Sub
 
 Private Sub Picture2_Click()
 
+End Sub
+
+Private Sub Timer2_Timer()
+Dim rsReb As New Recordset
+    Set rsReb = oSaccoMaster.GetRecordset("d_sp_sqlCompresser")
+    Timer2.Enabled = False
 End Sub

@@ -149,7 +149,7 @@ Begin VB.Form frmMilkCollection
             Style           =   5
             Object.Width           =   1764
             MinWidth        =   1764
-            TextSave        =   "17:20"
+            TextSave        =   "03:18 PM"
          EndProperty
          BeginProperty Panel4 {8E3867AB-8586-11D1-B16A-00C0F0283628} 
             Style           =   1
@@ -410,7 +410,7 @@ Begin VB.Form frmMilkCollection
       _Version        =   393216
       MouseIcon       =   "frmMilkCollection.frx":1ACC
       CalendarBackColor=   8454016
-      Format          =   108920833
+      Format          =   122159105
       CurrentDate     =   40095
    End
    Begin VB.CheckBox chkPrint 
@@ -638,18 +638,18 @@ End Sub
 
 Private Sub chprint_Click()
 
-ports.Clear
-ports = ""
+Ports.Clear
+Ports = ""
 '//If the drivers are installed it won't matter whether the Port is indicated
 ' or not it will just work.
 
 If chprint.value = vbChecked Then
-ports.AddItem "LPT1"
-ports = "LPT1"
-ports.AddItem "LPT2"
-ports.AddItem "LPT3"
-ports.AddItem "LPT4"
-ports.AddItem "LPT5"
+Ports.AddItem "LPT1"
+Ports = "LPT1"
+Ports.AddItem "LPT2"
+Ports.AddItem "LPT3"
+Ports.AddItem "LPT4"
+Ports.AddItem "LPT5"
 Else
 'Share the printer first the use of 127.0.0.1 which is
 'standard IP address for a loopback network connection
@@ -657,18 +657,18 @@ Else
 '
 Dim prnPrinter As Printer
 Dim pr As String
-ports.Clear
+Ports.Clear
 
 For Each prnPrinter In Printers
    If InStr(prnPrinter.DeviceName, "\\") Then
-    ports.AddItem prnPrinter.DeviceName
+    Ports.AddItem prnPrinter.DeviceName
     If InStr(prnPrinter.DeviceName, "G") Then
-    ports.Text = prnPrinter.DeviceName
+    Ports.Text = prnPrinter.DeviceName
     End If
     Else
-    ports.AddItem "\\127.0.0.1\" & prnPrinter.DeviceName
+    Ports.AddItem "\\127.0.0.1\" & prnPrinter.DeviceName
     If InStr(prnPrinter.DeviceName, "G") Then
-    ports.Text = "\\127.0.0.1\" & prnPrinter.DeviceName
+    Ports.Text = "\\127.0.0.1\" & prnPrinter.DeviceName
     End If
     End If
    
@@ -845,14 +845,14 @@ Set rs = New ADODB.Recordset
         
         
         '---d_sp_SelTransDet @SNo bigint,@StartDate varchar(10), @Enddate varchar(10)
-        Set rst = New ADODB.Recordset
+        Set Rst = New ADODB.Recordset
             sql = "d_sp_SelTransDet " & txtSNo & ",'" & transdate & "','" & Enddate & "'"
-        Set rst = oSaccoMaster.GetRecordset(sql)
+        Set Rst = oSaccoMaster.GetRecordset(sql)
         
     '--d_sp_UpdateDetTrans @SNo bigint,@QNTY float,@Amnt money,@Code varchar(35),@Subsidy money,@EPeriod varchar(10),@user varchar(35)
-        If Not rst.EOF Then
+        If Not Rst.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateDetTrans " & txtSNo & "," & rst!qnty & "," & rst!amount & ",'" & rst!code & "'," & rst!subsidy & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateDetTrans " & txtSNo & "," & Rst!qnty & "," & Rst!amount & ",'" & Rst!code & "'," & Rst!subsidy & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
             
         
@@ -860,20 +860,20 @@ Set rs = New ADODB.Recordset
         
         '----d_sp_SelTransGPayQnty @EP varchar(10), @Code varchar(35)
         Set rst2 = New ADODB.Recordset
-            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & rst!code & "'"
+            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & Rst!code & "'"
         Set rst2 = oSaccoMaster.GetRecordset(sql)
         
     '-- d_sp_UpdateTransPay @Code varchar(35), @Qnty float,@Amnt money,@Subsidy money,@GrossPay money, @EndDate varchar(10)  AS
     If Not rst2.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateTransPay '" & rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateTransPay '" & Rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
             
         End If
  
         '---Get transporters Total Deductions//d_sp_TotalTransDeduct @Code varchar(35),@Month bigint,@Year bigint
         Set Rs1 = New ADODB.Recordset
-            sql = "d_sp_TotalTransDeduct '" & rst!code & "'," & month(DTPMilkDate) & "," & year(DTPMilkDate) & ""
+            sql = "d_sp_TotalTransDeduct '" & Rst!code & "'," & month(DTPMilkDate) & "," & year(DTPMilkDate) & ""
         Set Rs1 = oSaccoMaster.GetRecordset(sql)
     If Not Rs1.EOF Then
     Dim TransTotalDed As Currency
@@ -885,7 +885,7 @@ Set rs = New ADODB.Recordset
     Dim amount As Currency
     
     '--d_sp_SelTransDed @Code varchar(35), @startdate varchar(10),@enddate varchar(10)
-    sql = "d_sp_SelTransDed '" & rst!code & "','" & Startdate & "','" & Enddate & "'"
+    sql = "d_sp_SelTransDed '" & Rst!code & "','" & Startdate & "','" & Enddate & "'"
     Set rs3 = oSaccoMaster.GetRecordset(sql)
     
     agrovet = 0
@@ -903,7 +903,7 @@ If Not rs3.EOF Then
     DESCR = Trim(rs3.Fields(0))
     amount = 0
     amount = rs3.Fields(1)
-    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & rst!code & "' AND EndPeriod ='" & Enddate & "'"
+    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & Rst!code & "' AND EndPeriod ='" & Enddate & "'"
     Set rs4 = oSaccoMaster.GetRecordset(sql)
      If UCase(rs4.Fields(0).name) = UCase(DESCR) Then
         agrovet = amount
@@ -935,7 +935,7 @@ End If
      ' d_sp_UpdateTransDed  @Code varchar(35),@EndPeriod varchar(15),@TotalDed money,@Agrovet money,@AI money,@TMShares money,@FSA money,@HShares money,@Advance money,@Others money
    
     Set cn = New ADODB.Connection
-    sql = "d_sp_UpdateTransDed  '" & rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
+    sql = "d_sp_UpdateTransDed  '" & Rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
     oSaccoMaster.ExecuteThis (sql)
     
  
@@ -963,19 +963,19 @@ If Not rs.EOF Then
         End If
         
     '---d_sp_SelTransDet @SNo bigint,@StartDate varchar(10), @Enddate varchar(10)
-        Set rst = New ADODB.Recordset
+        Set Rst = New ADODB.Recordset
             sql = "d_sp_SelTransDet " & txtSNo & ",'" & transdate & "','" & rs!dateinactivate & "'"
-        Set rst = oSaccoMaster.GetRecordset(sql)
+        Set Rst = oSaccoMaster.GetRecordset(sql)
         
     '--d_sp_UpdateDetTrans @SNo bigint,@QNTY float,@Amnt money,@Code varchar(35),@Subsidy money,@EPeriod varchar(10),@user varchar(35)
-        If Not rst.EOF Then
+        If Not Rst.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateDetTrans " & txtSNo & "," & rst!qnty & "," & rst!amount & ",'" & rst!code & "'," & rst!subsidy & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateDetTrans " & txtSNo & "," & Rst!qnty & "," & Rst!amount & ",'" & Rst!code & "'," & Rst!subsidy & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
             
             '----d_sp_SelTransGPayQnty @EP varchar(10), @Code varchar(35)
         Set rst2 = New ADODB.Recordset
-            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & rst!code & "'"
+            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & Rst!code & "'"
         Set rst2 = oSaccoMaster.GetRecordset(sql)
             
         
@@ -986,14 +986,14 @@ If Not rs.EOF Then
     '-- d_sp_UpdateTransPay @Code varchar(35), @Qnty float,@Amnt money,@Subsidy money,@GrossPay money, @EndDate varchar(10)  AS
     If Not rst2.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateTransPay '" & rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateTransPay '" & Rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
             
         End If
      
         '---Get transporters Total Deductions//d_sp_TotalTransDeduct @Code varchar(35),@Month bigint,@Year bigint
         Set Rs1 = New ADODB.Recordset
-            sql = "d_sp_TotalTransDeduct '" & rst!code & "'," & month(DTPMilkDate) & "," & year(DTPMilkDate) & ""
+            sql = "d_sp_TotalTransDeduct '" & Rst!code & "'," & month(DTPMilkDate) & "," & year(DTPMilkDate) & ""
         Set Rs1 = oSaccoMaster.GetRecordset(sql)
     If Not Rs1.EOF Then
     'Dim TransTotalDed As Currency
@@ -1006,7 +1006,7 @@ If Not rs.EOF Then
    ' Dim amount As Currency
     
     '--d_sp_SelTransDed @Code varchar(35), @startdate varchar(10),@enddate varchar(10)
-    sql = "d_sp_SelTransDed '" & rst!code & "','" & Startdate & "','" & Enddate & "'"
+    sql = "d_sp_SelTransDed '" & Rst!code & "','" & Startdate & "','" & Enddate & "'"
     Set rs3 = oSaccoMaster.GetRecordset(sql)
     
     agrovet = 0
@@ -1022,7 +1022,7 @@ If Not rs3.EOF Then
     DESCR = Trim(rs3.Fields(0))
     amount = 0
     amount = rs3.Fields(1)
-    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & rst!code & "' AND EndPeriod ='" & Enddate & "'"
+    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & Rst!code & "' AND EndPeriod ='" & Enddate & "'"
     Set rs4 = oSaccoMaster.GetRecordset(sql)
      If UCase(rs4.Fields(0).name) = UCase(DESCR) Then
         agrovet = amount
@@ -1053,7 +1053,7 @@ If Not rs3.EOF Then
    
 End If
  Set cn = New ADODB.Connection
-    sql = "d_sp_UpdateTransDed  '" & rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
+    sql = "d_sp_UpdateTransDed  '" & Rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
     oSaccoMaster.ExecuteThis (sql)
     End If
 
@@ -1196,7 +1196,7 @@ Others = 0
        'cdgPrint.Filter = "*.csv|*.txt"
         'cdgPrint.ShowSave
         Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         'ttt = "LPT1"
@@ -1416,7 +1416,7 @@ End If
         escFeedAndCut = Chr(29) + Chr(86) + Chr(65) '//Partial cut and feed
        
   '      ttt = "LPT1" 'LPT1
-         ttt = ports
+         ttt = Ports
         
         Set fso = CreateObject("Scripting.FileSystemObject")
 
@@ -1629,7 +1629,7 @@ End If
         'ttt = "LPT1" 'LPT1
         
          Dim PORT As String
-        PORT = ports
+        PORT = Ports
         'ttt = "LPT1" 'LPT1
         ttt = PORT
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -1689,8 +1689,8 @@ Private Sub cmdprintself_Click()
 Set rs = oSaccoMaster.GetRecordset("SELECT DISTINCT Sno  FROM         d_Transport  where active=1  ORDER BY Sno")
 While Not rs.EOF
 
-Set rst = oSaccoMaster.GetRecordset("SELECT * FROM D_SUPPLIERS WHERE SNO='" & rs.Fields(0) & "' AND HAST=1 ")
-If rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset("SELECT * FROM D_SUPPLIERS WHERE SNO='" & rs.Fields(0) & "' AND HAST=1 ")
+If Rst.EOF Then
 sql = ""
 sql = "update d_suppliers set hast=1 where sno='" & Trim(rs.Fields(0)) & "'"
 oSaccoMaster.ExecuteThis (sql)
@@ -1701,8 +1701,8 @@ Wend
 Set rs = oSaccoMaster.GetRecordset("SELECT DISTINCT Sno  FROM         d_Transport  where active=0  ORDER BY Sno")
 While Not rs.EOF
 
-Set rst = oSaccoMaster.GetRecordset("SELECT * FROM D_SUPPLIERS WHERE SNO='" & rs.Fields(0) & "' AND HAST=1 ")
-If rst.EOF Then
+Set Rst = oSaccoMaster.GetRecordset("SELECT * FROM D_SUPPLIERS WHERE SNO='" & rs.Fields(0) & "' AND HAST=1 ")
+If Rst.EOF Then
 sql = ""
 sql = "update d_suppliers set hast=1 where sno='" & Trim(rs.Fields(0)) & "'"
 oSaccoMaster.ExecuteThis (sql)
@@ -1731,24 +1731,29 @@ Dim transdate As Date
 sql = "SELECT     UserLoginID,levels, UserGroup, SUPERUSER From UserAccounts where UserLoginID='" & User & "'"
 Set rs = oSaccoMaster.GetRecordset(sql)
 If Not rs.EOF Then
-If rs!Levels <> "Intake" Then
-MsgBox "You are not allowed to Intake", vbInformation
-Exit Sub
-
-End If
-End If
-If Trim(txtSNo) = "" Then
-    MsgBox "Please enter the supplier number."
-        txtSNo.SetFocus
+    If rs!Levels <> "Intake" Then
+    MsgBox "You are not allowed to Intake", vbInformation
     Exit Sub
+    
+    End If
 End If
+    If Trim(txtSNo) = "" Then
+        MsgBox "Please enter the supplier number."
+            txtSNo.SetFocus
+        Exit Sub
+    End If
+    
+    If Trim(txtQnty) = "" Then
+        MsgBox "Please enter the quantity supplied."
+            txtQnty.SetFocus
+    Exit Sub
 
-If Trim(txtQnty) = "" Then
-    MsgBox "Please enter the quantity supplied."
-        txtQnty.SetFocus
-Exit Sub
+    End If
+    
+    oSaccoMaster.ExecuteThis ("delete from d_supplier_deduc WHERE Amount= 0")
+    oSaccoMaster.ExecuteThis ("delete from d_supplier_deduc WHERE Amount= 0")
 
-End If
+    
 
 txtSNo_Validate True
 
@@ -1954,14 +1959,14 @@ Set rs = New ADODB.Recordset
 
 
         '---d_sp_SelTransDet @SNo bigint,@StartDate varchar(10), @Enddate varchar(10)
-        Set rst = New ADODB.Recordset
+        Set Rst = New ADODB.Recordset
             sql = "d_sp_SelTransDet " & txtSNo & ",'" & transdate & "','" & Enddate & "'"
-        Set rst = oSaccoMaster.GetRecordset(sql)
+        Set Rst = oSaccoMaster.GetRecordset(sql)
 
     '--d_sp_UpdateDetTrans @SNo bigint,@QNTY float,@Amnt money,@Code varchar(35),@Subsidy money,@EPeriod varchar(10),@user varchar(35)
-        If Not rst.EOF Then
+        If Not Rst.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateDetTrans " & txtSNo & "," & rst!qnty & "," & rst!amount & ",'" & rst!code & "'," & rst!subsidy & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateDetTrans " & txtSNo & "," & Rst!qnty & "," & Rst!amount & ",'" & Rst!code & "'," & Rst!subsidy & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
 
 
@@ -1969,20 +1974,20 @@ Set rs = New ADODB.Recordset
 
         '----d_sp_SelTransGPayQnty @EP varchar(10), @Code varchar(35)
         Set rst2 = New ADODB.Recordset
-            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & rst!code & "'"
+            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & Rst!code & "'"
         Set rst2 = oSaccoMaster.GetRecordset(sql)
 
     '-- d_sp_UpdateTransPay @Code varchar(35), @Qnty float,@Amnt money,@Subsidy money,@GrossPay money, @EndDate varchar(10)  AS
     If Not rst2.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateTransPay '" & rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateTransPay '" & Rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
 
         End If
 
         '---Get transporters Total Deductions//d_sp_TotalTransDeduct @Code varchar(35),@Month bigint,@Year bigint
         Set Rs1 = New ADODB.Recordset
-            sql = "d_sp_TotalTransDeduct '" & rst!code & "'," & month(DTPMilkDate) & "," & year(DTPMilkDate) & ""
+            sql = "d_sp_TotalTransDeduct '" & Rst!code & "'," & month(DTPMilkDate) & "," & year(DTPMilkDate) & ""
         Set Rs1 = oSaccoMaster.GetRecordset(sql)
     If Not Rs1.EOF Then
     Dim TransTotalDed As Currency
@@ -1994,7 +1999,7 @@ Set rs = New ADODB.Recordset
     Dim amount As Currency
 
     '--d_sp_SelTransDed @Code varchar(35), @startdate varchar(10),@enddate varchar(10)
-    sql = "d_sp_SelTransDed '" & rst!code & "','" & Startdate & "','" & Enddate & "'"
+    sql = "d_sp_SelTransDed '" & Rst!code & "','" & Startdate & "','" & Enddate & "'"
     Set rs3 = oSaccoMaster.GetRecordset(sql)
 
     agrovet = 0
@@ -2012,7 +2017,7 @@ If Not rs3.EOF Then
     DESCR = Trim(rs3.Fields(0))
     amount = 0
     amount = rs3.Fields(1)
-    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & rst!code & "' AND EndPeriod ='" & Enddate & "'"
+    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & Rst!code & "' AND EndPeriod ='" & Enddate & "'"
     Set rs4 = oSaccoMaster.GetRecordset(sql)
      If UCase(rs4.Fields(0).name) = UCase(DESCR) Then
         agrovet = amount
@@ -2044,7 +2049,7 @@ End If
      ' d_sp_UpdateTransDed  @Code varchar(35),@EndPeriod varchar(15),@TotalDed money,@Agrovet money,@AI money,@TMShares money,@FSA money,@HShares money,@Advance money,@Others money
 
     Set cn = New ADODB.Connection
-    sql = "d_sp_UpdateTransDed  '" & rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ",0,0"
+    sql = "d_sp_UpdateTransDed  '" & Rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ",0,0"
     oSaccoMaster.ExecuteThis (sql)
 
 
@@ -2072,19 +2077,19 @@ If Not rs.EOF Then
         End If
 
     '---d_sp_SelTransDet @SNo bigint,@StartDate varchar(10), @Enddate varchar(10)
-        Set rst = New ADODB.Recordset
+        Set Rst = New ADODB.Recordset
             sql = "d_sp_SelTransDet " & txtSNo & ",'" & transdate & "','" & rs!dateinactivate & "'"
-        Set rst = oSaccoMaster.GetRecordset(sql)
+        Set Rst = oSaccoMaster.GetRecordset(sql)
 
     '--d_sp_UpdateDetTrans @SNo bigint,@QNTY float,@Amnt money,@Code varchar(35),@Subsidy money,@EPeriod varchar(10),@user varchar(35)
-        If Not rst.EOF Then
+        If Not Rst.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateDetTrans " & txtSNo & "," & rst!qnty & "," & rst!amount & ",'" & rst!code & "'," & rst!subsidy & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateDetTrans " & txtSNo & "," & Rst!qnty & "," & Rst!amount & ",'" & Rst!code & "'," & Rst!subsidy & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
 
             '----d_sp_SelTransGPayQnty @EP varchar(10), @Code varchar(35)
         Set rst2 = New ADODB.Recordset
-            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & rst!code & "'"
+            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & Rst!code & "'"
         Set rst2 = oSaccoMaster.GetRecordset(sql)
 
 
@@ -2095,14 +2100,14 @@ If Not rs.EOF Then
     '-- d_sp_UpdateTransPay @Code varchar(35), @Qnty float,@Amnt money,@Subsidy money,@GrossPay money, @EndDate varchar(10)  AS
     If Not rst2.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateTransPay '" & rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateTransPay '" & Rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
 
         End If
 
         '---Get transporters Total Deductions//d_sp_TotalTransDeduct @Code varchar(35),@Month bigint,@Year bigint
         Set Rs1 = New ADODB.Recordset
-            sql = "d_sp_TotalTransDeduct '" & rst!code & "'," & month(DTPMilkDate) & "," & year(DTPMilkDate) & ""
+            sql = "d_sp_TotalTransDeduct '" & Rst!code & "'," & month(DTPMilkDate) & "," & year(DTPMilkDate) & ""
         Set Rs1 = oSaccoMaster.GetRecordset(sql)
     If Not Rs1.EOF Then
     'Dim TransTotalDed As Currency
@@ -2115,7 +2120,7 @@ If Not rs.EOF Then
    ' Dim amount As Currency
 
     '--d_sp_SelTransDed @Code varchar(35), @startdate varchar(10),@enddate varchar(10)
-    sql = "d_sp_SelTransDed '" & rst!code & "','" & Startdate & "','" & Enddate & "'"
+    sql = "d_sp_SelTransDed '" & Rst!code & "','" & Startdate & "','" & Enddate & "'"
     Set rs3 = oSaccoMaster.GetRecordset(sql)
 
     agrovet = 0
@@ -2131,7 +2136,7 @@ If Not rs3.EOF Then
     DESCR = Trim(rs3.Fields(0))
     amount = 0
     amount = rs3.Fields(1)
-    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & rst!code & "' AND EndPeriod ='" & Enddate & "'"
+    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & Rst!code & "' AND EndPeriod ='" & Enddate & "'"
     Set rs4 = oSaccoMaster.GetRecordset(sql)
      If UCase(rs4.Fields(0).name) = UCase(DESCR) Then
         agrovet = amount
@@ -2162,7 +2167,7 @@ If Not rs3.EOF Then
 
 End If
  Set cn = New ADODB.Connection
-    sql = "d_sp_UpdateTransDed  '" & rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
+    sql = "d_sp_UpdateTransDed  '" & Rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
     oSaccoMaster.ExecuteThis (sql)
     End If
 
@@ -2377,7 +2382,7 @@ If chkPrint = vbChecked Then
         Dim PORT As String
    '     PORT = ports
         'ttt = "LPT1" 'LPT1
-        ttt = ports
+        ttt = Ports
         'ttt = "D:\PROJECTS\FOSA\DAILY" & Date & ""
         Set fso = CreateObject("Scripting.FileSystemObject")
         'Set chkPrinter = fso.GetFile(ttt)
@@ -2712,14 +2717,14 @@ Set Rs1 = oSaccoMaster.GetRecordset(sql)
         
         
         '---d_sp_SelTransDet @SNo bigint,@StartDate varchar(10), @Enddate varchar(10)
-        Set rst = New ADODB.Recordset
+        Set Rst = New ADODB.Recordset
             sql = "d_sp_SelTransDet " & rs.Fields("SNo") & ",'" & transdate & "','" & Enddate & "'"
-        Set rst = oSaccoMaster.GetRecordset(sql)
+        Set Rst = oSaccoMaster.GetRecordset(sql)
         
     '--d_sp_UpdateDetTrans @SNo bigint,@QNTY float,@Amnt money,@Code varchar(35),@Subsidy money,@EPeriod varchar(10),@user varchar(35)
-        If Not rst.EOF Then
+        If Not Rst.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateDetTrans " & rs.Fields("SNo") & "," & rst!qnty & "," & rst!amount & ",'" & rst!code & "'," & rst!subsidy & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateDetTrans " & rs.Fields("SNo") & "," & Rst!qnty & "," & Rst!amount & ",'" & Rst!code & "'," & Rst!subsidy & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
             
         
@@ -2730,20 +2735,20 @@ Set Rs1 = oSaccoMaster.GetRecordset(sql)
         End If
         '----d_sp_SelTransGPayQnty @EP varchar(10), @Code varchar(35)
         Set rst2 = New ADODB.Recordset
-            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & rst!code & "'"
+            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & Rst!code & "'"
         Set rst2 = oSaccoMaster.GetRecordset(sql)
         
     '-- d_sp_UpdateTransPay @Code varchar(35), @Qnty float,@Amnt money,@Subsidy money,@GrossPay money, @EndDate varchar(10)  AS
     If Not rst2.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateTransPay '" & rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateTransPay '" & Rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
             
         End If
  
         '---Get transporters Total Deductions//d_sp_TotalTransDeduct @Code varchar(35),@Month bigint,@Year bigint
         Set Rs1 = New ADODB.Recordset
-            sql = "d_sp_TotalTransDeduct '" & rst!code & "'," & month(rs.Fields("transdate")) & "," & year(rs.Fields("transdate")) & ""
+            sql = "d_sp_TotalTransDeduct '" & Rst!code & "'," & month(rs.Fields("transdate")) & "," & year(rs.Fields("transdate")) & ""
         Set Rs1 = oSaccoMaster.GetRecordset(sql)
     If Not Rs1.EOF Then
     'Dim TransTotalDed As Currency
@@ -2756,14 +2761,14 @@ Set Rs1 = oSaccoMaster.GetRecordset(sql)
    ' Dim amount As Currency
     
     '--d_sp_SelTransDed @Code varchar(35), @startdate varchar(10),@enddate varchar(10)
-    sql = "d_sp_SelTransDed '" & rst!code & "','" & Startdate & "','" & Enddate & "'"
+    sql = "d_sp_SelTransDed '" & Rst!code & "','" & Startdate & "','" & Enddate & "'"
     Set rs3 = oSaccoMaster.GetRecordset(sql)
 If Not rs3.EOF Then
     While Not rs3.EOF
     DESCR = Trim(rs3.Fields(0))
     amount = 0
     amount = rs3.Fields(1)
-    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & rst!code & "' AND EndPeriod ='" & Enddate & "'"
+    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & Rst!code & "' AND EndPeriod ='" & Enddate & "'"
     Set rs4 = oSaccoMaster.GetRecordset(sql)
      If UCase(rs4.Fields(0).name) = UCase(DESCR) Then
         agrovet = amount
@@ -2792,7 +2797,7 @@ If Not rs3.EOF Then
     Wend
     ' d_sp_UpdateTransDed  @Code varchar(35),@EndPeriod varchar(15),@TotalDed money,@Agrovet money,@AI money,@TMShares money,@FSA money,@HShares money,@Advance money,@Others money
     Set cn = New ADODB.Connection
-    sql = "d_sp_UpdateTransDed  '" & rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
+    sql = "d_sp_UpdateTransDed  '" & Rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
     oSaccoMaster.ExecuteThis (sql)
 End If
 
@@ -2817,14 +2822,14 @@ oSaccoMaster.ExecuteThis (sql)
 
 
         '---d_sp_SelTransDet @SNo bigint,@StartDate varchar(10), @Enddate varchar(10)
-        Set rst = New ADODB.Recordset
+        Set Rst = New ADODB.Recordset
             sql = "d_sp_SelTransDet " & rs.Fields("SNo") & ",'" & transdate & "','" & Enddate & "'"
-        Set rst = oSaccoMaster.GetRecordset(sql)
+        Set Rst = oSaccoMaster.GetRecordset(sql)
         
     '--d_sp_UpdateDetTrans @SNo bigint,@QNTY float,@Amnt money,@Code varchar(35),@Subsidy money,@EPeriod varchar(10),@user varchar(35)
-        If Not rst.EOF Then
+        If Not Rst.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateDetTrans " & rs.Fields("SNo") & "," & rst!qnty & "," & rst!amount & ",'" & rst!code & "'," & rst!subsidy & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateDetTrans " & rs.Fields("SNo") & "," & Rst!qnty & "," & Rst!amount & ",'" & Rst!code & "'," & Rst!subsidy & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
             
         Else
@@ -2836,20 +2841,20 @@ oSaccoMaster.ExecuteThis (sql)
         
                 '----d_sp_SelTransGPayQnty @EP varchar(10), @Code varchar(35)
         Set rst2 = New ADODB.Recordset
-            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & rst!code & "'"
+            sql = "d_sp_SelTransGPayQnty '" & Enddate & "','" & Rst!code & "'"
         Set rst2 = oSaccoMaster.GetRecordset(sql)
         
     '-- d_sp_UpdateTransPay @Code varchar(35), @Qnty float,@Amnt money,@Subsidy money,@GrossPay money, @EndDate varchar(10)  AS
     If Not rst2.EOF Then
             Set cn = New ADODB.Connection
-                sql = "d_sp_UpdateTransPay '" & rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
+                sql = "d_sp_UpdateTransPay '" & Rst!code & "'," & rst2!qnty & "," & rst2!Amnt & "," & rst2!subsidy & "," & rst2!GPay & ",'" & Enddate & "','" & User & "'"
             oSaccoMaster.ExecuteThis (sql)
             
         End If
  
         '---Get transporters Total Deductions//d_sp_TotalTransDeduct @Code varchar(35),@Month bigint,@Year bigint
         Set Rs1 = New ADODB.Recordset
-            sql = "d_sp_TotalTransDeduct '" & rst!code & "'," & month(rs.Fields("transdate")) & "," & year(rs.Fields("transdate")) & ""
+            sql = "d_sp_TotalTransDeduct '" & Rst!code & "'," & month(rs.Fields("transdate")) & "," & year(rs.Fields("transdate")) & ""
         Set Rs1 = oSaccoMaster.GetRecordset(sql)
     If Not Rs1.EOF Then
     'Dim TransTotalDed As Currency
@@ -2862,14 +2867,14 @@ oSaccoMaster.ExecuteThis (sql)
    ' Dim amount As Currency
     
     '--d_sp_SelTransDed @Code varchar(35), @startdate varchar(10),@enddate varchar(10)
-    sql = "d_sp_SelTransDed '" & rst!code & "','" & Startdate & "','" & Enddate & "'"
+    sql = "d_sp_SelTransDed '" & Rst!code & "','" & Startdate & "','" & Enddate & "'"
     Set rs3 = oSaccoMaster.GetRecordset(sql)
 If Not rs3.EOF Then
     While Not rs3.EOF
     DESCR = Trim(rs3.Fields(0))
     amount = 0
     amount = rs3.Fields(1)
-    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & rst!code & "' AND EndPeriod ='" & Enddate & "'"
+    sql = "SELECT     Agrovet, AI, TMShares, FSA, HShares, Advance, Others FROM d_TransportersPayroll WHERE Code='" & Rst!code & "' AND EndPeriod ='" & Enddate & "'"
     Set rs4 = oSaccoMaster.GetRecordset(sql)
      If UCase(rs4.Fields(0).name) = UCase(DESCR) Then
         agrovet = amount
@@ -2898,7 +2903,7 @@ If Not rs3.EOF Then
     Wend
     ' d_sp_UpdateTransDed  @Code varchar(35),@EndPeriod varchar(15),@TotalDed money,@Agrovet money,@AI money,@TMShares money,@FSA money,@HShares money,@Advance money,@Others money
     Set cn = New ADODB.Connection
-    sql = "d_sp_UpdateTransDed  '" & rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
+    sql = "d_sp_UpdateTransDed  '" & Rst!code & "','" & Enddate & "'," & TransTotalDed & "," & agrovet & "," & AI & "," & TMShares & "," & FSA & "," & HShares & "," & Advance & "," & Others & ""
     oSaccoMaster.ExecuteThis (sql)
 End If
 
@@ -3086,7 +3091,7 @@ Enddate = DateSerial(year(DTPMilkDate), month(DTPMilkDate) + 1, 1 - 1)
  '      PORT = ports
         'ttt = "LPT1" 'LPT1
  '      ttt = PORT
-        ttt = ports
+        ttt = Ports
         'ttt = "LPT1" 'LPT1
         'ttt = "D:\PROJECTS\FOSA\DAILY" & Date & ""
         Set fso = CreateObject("Scripting.FileSystemObject")
@@ -3290,11 +3295,11 @@ Set rs = oSaccoMaster.GetRecordset(sql)
 If Not rs.EOF Then
 txtTCode = rs.Fields(0)
 '//PUT THE NAME OF THE TRANSPORTER
-Set rst = New ADODB.Recordset
+Set Rst = New ADODB.Recordset
 sql = "d_sp_SelectTrans '" & txtTCode & "'"
-Set rst = oSaccoMaster.GetRecordset(sql)
-If Not rst.EOF Then
-If Not IsNull(rst.Fields(0)) Then lblTName = rst.Fields(0)
+Set Rst = oSaccoMaster.GetRecordset(sql)
+If Not Rst.EOF Then
+If Not IsNull(Rst.Fields(0)) Then lblTName = Rst.Fields(0)
 Else
 lblTName = ""
 End If
